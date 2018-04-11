@@ -5,6 +5,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Transition {
     // class for deserialization of "transition" tags of a XML-file
 
+    // "Class variable/property should always be declared as public"
+    // src: https://www.codeproject.com/Articles/487571/XML-Serialization-and-Deserialization-Part-2
+
     @XmlElement(name = "state_initial")
     public String stateInitial;
 
@@ -20,31 +23,4 @@ public class Transition {
     public Transition(){
         // default constructor
     }
-
-    // Getter and setter
-    /*
-    public String getInputSymbol() {
-        return this.inputSymbol;
-    }
-
-    public String getStateFinal() {
-        return this.stateFinal;
-    }
-
-    public String getStateInitial() {
-        return this.stateInitial;
-    }
-
-    public void setInputSymbol(String inputSymbol) {
-        this.inputSymbol = inputSymbol;
-    }
-
-    public void setStateInitial(String stateInitial) {
-        this.stateInitial = stateInitial;
-    }
-
-    public void setStateFinal(String stateFinal) {
-        this.stateFinal = stateFinal;
-    }
-    */
 }

@@ -1,47 +1,45 @@
 import org.omg.DynamicAny.DynAnyPackage.InvalidValue;
-
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Scanner;
-import java.util.regex.Pattern;
 
-public class RunMealy {
+
+public class RunMealy implements CONS{
     // Mealy machine
-    // INPUT: C:\Users\denis\Desktop\bsp.xml
+    // INPUT: C:\path\to\bsp.xml
     public static void main(String[] args) throws IOException {
+        System.out.println("Please type in the path to the xml file, representing a Mealy.");
         // Reaktives System
         StringBuffer buffer = new StringBuffer();
         while(true){
-            // User soll Pfad der XML- oder JSON-Datei per Konsole eingeben
+            // Listening to users input
             InputStream is = System.in;
             try {
                 int c = 0;
-                // TODO add EOF as a constant
-                while ((c = is.read()) > -1) { // -1 bedeutet: EOF
-                    // User input will be put together
-                    if (c == '\n') break; // TODO maybe constant \n = ENTER
+                while ((c = is.read()) > CONS.EOF) {
+                    // User input will be added to the buffer
+                    if (c == CONS.ENTER) break;
                     buffer.append((char) c);
                 }
                 // convert buffer to string
                 String path = buffer.toString();
 
-                // if path references xml file, create "XML-Mealy"
+                // if path references xml file, try to create "XML-Mealy"
                 if(checkFileEnding(path, "xml")){
                     XMLMealy xm = new XMLMealy();
-                    xm = xm.createMealy(path);
+                    xm = xm.createMealy(path); // TODO add try catch block
                     if(xm == null){
                         // if function returns null, return to main
+                        // TODO better solution: throwing errors
                         main(args);
                     }
                     xm.runMealy();
                 }
                 else if(checkFileEnding(path, "json")){
-                    // TODO
+                    // TODO or not?
                 }
                 else{
-                    System.out.println("Wrong file ending. Use XML or JSON only!");
+                    System.out.println("Wrong file ending. Use Xml only!");
                 }
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -55,11 +53,6 @@ public class RunMealy {
                     ex.printStackTrace();
                 }
             }
-
-
-            // Verarbeitung der Eingaben (Zustandsübergang)
-
-            // Ausgaben des reaktiven Systems (Neuer Zustand)
         }
     }
 

@@ -5,39 +5,39 @@ import java.util.HashSet;
 
 
 public abstract class Mealy implements CONS{
-    // Name des Mealy-Automaten
+    // name of the mealy machine
     String mealyName = new String();
 
-    //Aktueller Zustand des Automaten
+    // current state of the mealy machine
     State currentState;
 
-    //Zustände
+    // set of all possible states of the mealy machine
     HashSet<State> states = new HashSet<>();
 
-    // Eingabealphabet
+    // input alphabet
     HashSet<Symbol> inputSymbols = new HashSet<>();
 
-    //Ausgabealphabet
+    // output alphabet
     HashSet<Symbol> outputSymbols = new HashSet<>();
 
-    // Zustandsübergangstabelle
+    // transition table
     String transitionTable[][] = {};
 
-    // Tabelle für die Ausgabefunktion
+    // table for outputs
     String outputTable[][] = {};
 
+    // "activates" mealy
     public void runMealy() throws IOException, InvalidValue {
 
         // Shows user the current mealy "build"
         printMealy();
         System.out.println("Now type in a legal input symbol!");
-        System.out.println("");
 
         // "Second" reactive system, so user can interact with his mealy
         reactiveMealy();
     }
 
-    // Some printing functions to inform the user
+    // Some printing functions to let the user know what's happening
     private void printAllStates(){
         System.out.println("Exisiting states: ");
         for(State state : states){
@@ -79,6 +79,7 @@ public abstract class Mealy implements CONS{
     }
     private void printMealy(){
         System.out.println("Running mealy: " + mealyName);
+        System.out.println("Current State: " + currentState.getState());
         printAllStates();
         printAllInputs();
         printAllOutputs();
@@ -120,6 +121,7 @@ public abstract class Mealy implements CONS{
         }
     }
 
+    // TODO almost the same as transNext ...
     public Symbol output(State currentState, Symbol inputSymbol) throws InvalidValue{
         // Safes indexes of found elements
         int statePosition = 0;
@@ -172,7 +174,7 @@ public abstract class Mealy implements CONS{
 
             currentState = transNext(currentState, userSymbol);
             System.out.println("Mealy entered new State: " + currentState.getState().toString());
-            // TODO Auf Endzustand testen !
+            // TODO Vielleicht auf Endzustand/Fehlerzustand testen !
             System.out.println("Waiting for new input");
             reactiveMealy();
         }

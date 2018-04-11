@@ -14,6 +14,7 @@ import java.util.HashSet;
 @XmlAccessorType(XmlAccessType.NONE)
 public class XMLMealy extends Mealy{
 
+    // Attribute will be deserialized from xml-file and safed into this variable
     @XmlAttribute(name="name", required=true)
     private String mealyName;
 
@@ -21,30 +22,20 @@ public class XMLMealy extends Mealy{
     private String startingState;
 
     @XmlList
-    // Zustände des Mealy-Automaten
     private HashSet<String> states = new HashSet<>();
 
     @XmlList
-    // Eingabealphabet
     private HashSet<String> inputSymbols = new HashSet<>();
 
     @XmlList
-    // Ausgabealphabet
     private HashSet<String> outputSymbols = new HashSet<>();
 
-    // "Class variable/property should always be declared as public"
-    // src: https://www.codeproject.com/Articles/487571/XML-Serialization-and-Deserialization-Part-2
     @XmlElement(name = "Transitions")
-    // Wrapper/Parent of all transition elements
-    public Transitions transitions = new Transitions();
+    // Wrapper/Parent of all transition elements (contains output symbols as well)
+    private Transitions transitions = new Transitions();
 
-    // Zustandsuntergangstabelle
+    // Tables for function f:x -> State x Symbol
     private String transitionTable[][] = {};
-
-    @XmlElement(name = "Outputs")
-    public Outputs outputs = new Outputs();
-
-    // Tabelle für die Ausgabefunktion
     private String outputTable[][] = {};
 
 
@@ -61,7 +52,7 @@ public class XMLMealy extends Mealy{
             Unmarshaller u = ctx.createUnmarshaller();
             try{
                 XMLMealy k = (XMLMealy) u.unmarshal(file);
-                k.initializeTransitionTable();
+                k.initializeTables();
                 k.initializeParent();
                 return k;
             }
@@ -79,20 +70,13 @@ public class XMLMealy extends Mealy{
             ex.printStackTrace();
             return null; // TODO
         }
-        catch (IOException e) {
-            e.printStackTrace();
-            return null; // TODO
-        } catch (IllegalXmlFileException e) {
+        catch (IllegalXmlFileException e) {
             e.printStackTrace();
             return null; // TODO
         }
-        /*catch (IllegalXmlFileException e) {
-            e.printStackTrace();
-            return null;
-        }*/
     }
 
-    // TODO Wie macht man es richtig ?!?!
+    // TODO Wie macht man es richtig ?!?! Eltern wird nicht richtig initialisiert, wegen Xml-Annotations
     private void initializeParent(){
         super.mealyName = mealyName;
         super.states = toState(states);
@@ -104,7 +88,7 @@ public class XMLMealy extends Mealy{
     }
 
     // Initializes the transition table, that is currently a empty two dimensional array
-    private void initializeTransitionTable() throws IllegalXmlFileException {
+    private void initializeTables() throws IllegalXmlFileException {
         // Note: only use function, after Xml-File-Data was safed in this instance
         // State x Symbol
         /* First row will be initialized with all existing input symbols, and first column with
@@ -136,22 +120,21 @@ public class XMLMealy extends Mealy{
             int statePosition = 0;
             int inputSymbolPosition = 0;
             // get initial state, input symbol and final state of this iterate through transitionList
-            String stateInitial = t.stateInitial.toString();
-            String inputSymbol = t.inputSymbol.toString();
-            String stateFinal = t.stateFinal.toString();
-            String outputSymbol = t.outputSymbol.toString();
+            String stateInitial = t.stateInitial;
+            String inputSymbol = t.inputSymbol;
+            String stateFinal = t.stateFinal;
+            String outputSymbol = t.outputSymbol;
 
             // Iterating through first column and searching for fitting state
             for(i = 1; i < transitionTable.length; i++){
                 if(stateInitial.equals(transitionTable[i][0])){
                     // Safe position of found state
                     statePosition = i;
-                    break; // TODO "schlechter Programmierstil" aber gute Lesbarkeit !
+                    break; // TODO "schlechter Programmierstil" -> while Schleife
                 }
             }
 
             // Iterating through first row and searching for fitting symbol
-            // TODO hats nicht gefunden ...
             for(j = 1; j < transitionTable[0].length; j++){
                 if(inputSymbol.equals(transitionTable[0][j])){
                     // Safe position of found symbol
@@ -165,7 +148,6 @@ public class XMLMealy extends Mealy{
             if(inputSymbolPosition == 0 || statePosition == 0){
                 // Illegal Xml-File. Symbol or state used in transition, that is not defined!!!
                 if(inputSymbolPosition == 0){
-                    // TODO system.out.print trotz geworfenem Fehler????
                     System.out.println("The symbol: '");
                     System.out.print(inputSymbol);
                     System.out.print("' is not defined in the input alphabet.");
