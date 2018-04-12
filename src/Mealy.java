@@ -1,4 +1,6 @@
 import org.omg.DynamicAny.DynAnyPackage.InvalidValue;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
@@ -204,6 +206,12 @@ public abstract class Mealy implements CONS{
                         Symbol fileSymbol = new Symbol(filesName.split("\\.")[0]);
                         // try to change to next state
                         try {
+                            Symbol outputSymbol = output(currentState, fileSymbol);
+                            // Creates a file with name of associated output symbol in output directory
+                            File f = new File("./output/" + outputSymbol.getSymbol().toString() + ".msg");
+                            f.getParentFile().mkdirs();
+                            f.createNewFile();
+                            // go into next state
                             currentState = transNext(currentState, fileSymbol);
                             // deletes file
                             Files.delete(FileSystems.getDefault().getPath("./input/"+filesName));
