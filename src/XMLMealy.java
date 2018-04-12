@@ -45,8 +45,9 @@ public class XMLMealy extends Mealy{
 
     public static XMLMealy createMealy(String path){
         // TODO file.close();
+        FileInputStream file = null;
         try{
-            FileInputStream file = new FileInputStream(new File(path));
+            file = new FileInputStream(new File(path));
             JAXBContext ctx= JAXBContext.newInstance(XMLMealy.class);
             // Deserialize
             Unmarshaller u = ctx.createUnmarshaller();
@@ -73,6 +74,14 @@ public class XMLMealy extends Mealy{
         catch (IllegalXmlFileException e) {
             e.printStackTrace();
             return null; // TODO
+        }
+        finally{
+            try{
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 

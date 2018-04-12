@@ -47,7 +47,7 @@ public class RunMealy implements CONS{
                 invalidValue.printStackTrace();
             } finally{
                 try{
-                    // TODO check if everything is closed ....
+                    // TODO is = system.in ... Do I have to close this stream?
                     is.close();
                 } catch(Exception ex) {
                     ex.printStackTrace();

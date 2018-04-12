@@ -77,6 +77,7 @@ public abstract class Mealy implements CONS{
         final PrettyPrinter printer = new PrettyPrinter(System.out);
         printer.print(outputTable);
     }
+
     private void printMealy(){
         System.out.println("Running mealy: " + mealyName);
         System.out.println("Current State: " + currentState.getState());
@@ -157,6 +158,7 @@ public abstract class Mealy implements CONS{
 
 
     public void reactiveMealy() throws IOException, InvalidValue {
+        // Reactive system for mealy, because mealy must be able to react to users input
         StringBuffer userInput = new StringBuffer();
         InputStream is = System.in;
         int c = 0;
