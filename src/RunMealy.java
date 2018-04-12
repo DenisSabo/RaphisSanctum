@@ -3,7 +3,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-
 public class RunMealy implements CONS{
     // Mealy machine
     // INPUT: C:\path\to\bsp.xml
@@ -25,7 +24,7 @@ public class RunMealy implements CONS{
                 String path = buffer.toString();
 
                 // if path references xml file, try to create "XML-Mealy"
-                if(checkFileEnding(path, "xml")){
+                if(CONS.checkFileEnding(path, "xml")){
                     XMLMealy xm = new XMLMealy();
                     xm = xm.createMealy(path); // TODO add try catch block
                     if(xm == null){
@@ -35,7 +34,7 @@ public class RunMealy implements CONS{
                     }
                     xm.runMealy();
                 }
-                else if(checkFileEnding(path, "json")){
+                else if(CONS.checkFileEnding(path, "json")){
                     // TODO or not?
                 }
                 else{
@@ -54,16 +53,5 @@ public class RunMealy implements CONS{
                 }
             }
         }
-    }
-
-    public static boolean checkFileEnding(String path, String expectedEnding){
-        String extension = "";
-
-        int i = path.lastIndexOf('.');
-        if (i > 0) {
-            extension = path.substring(i+1);
-        }
-        if(expectedEnding.equals(extension)) return true;
-        else return false;
     }
 }

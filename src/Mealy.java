@@ -1,7 +1,11 @@
 import org.omg.DynamicAny.DynAnyPackage.InvalidValue;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.*;
 import java.util.HashSet;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 
 public abstract class Mealy implements CONS{
@@ -31,7 +35,7 @@ public abstract class Mealy implements CONS{
 
         // Shows user the current mealy "build"
         printMealy();
-        System.out.println("Now type in a legal input symbol!");
+        System.out.println("Now create .msg file with legal input symbol in the input directory!");
 
         // "Second" reactive system, so user can interact with his mealy
         reactiveMealy();
@@ -117,8 +121,9 @@ public abstract class Mealy implements CONS{
             throw new InvalidValue();
         }
         else{
-            // TODO bad solution
-            return new State(transitionTable[statePosition][inputSymbolPosition]);
+            State nextState = new State(transitionTable[statePosition][inputSymbolPosition]);
+            System.out.println("Next state: " + nextState.getState().toString());
+            return nextState;
         }
     }
 
@@ -161,24 +166,67 @@ public abstract class Mealy implements CONS{
         // Reactive system for mealy, because mealy must be able to react to users input
         StringBuffer userInput = new StringBuffer();
         InputStream is = System.in;
-        int c = 0;
+        // A watch-service that will watch the directory "input" for changes
+        WatchService watcher = FileSystems.getDefault().newWatchService();
+        Path dir = FileSystems.getDefault().getPath("./input");
+        try{// wait for key to be signaled
+            WatchKey key = dir.register(watcher, ENTRY_CREATE);
+            // event processing loop
+            while(true){
+                try{
 
-        while(true){
-            // While not "end of file"
-            while((c = is.read()) > EOF){
-                if (c == CONS.ENTER) break;
-                // Summarize chars in one buffer
-                userInput.append((char) c);
+                    key = watcher.take();
+                }
+                catch(InterruptedException ex){
+                    System.err.println(ex);
+                    return;
+                }
+                for (WatchEvent<?> event: key.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+
+                    // This key is registered only
+                    // for ENTRY_CREATE events,
+                    // but an OVERFLOW event can
+                    // occur regardless if events
+                    // are lost or discarded.
+                    if (kind == OVERFLOW) {
+                        continue;
+                    }
+
+                    // The filename is the in context of the event.
+                    WatchEvent<Path> ev = (WatchEvent<Path>)event;
+                    Path filename = ev.context();
+
+                    // Use filename as symbol
+                    // but first check if filending is "msg"
+                    String filesName = filename.getFileName().toString();
+                    if(CONS.checkFileEnding(filesName, "msg")){
+                        Symbol fileSymbol = new Symbol(filesName.split("\\.")[0]);
+                        // try to change to next state
+                        try {
+                            currentState = transNext(currentState, fileSymbol);
+                            // deletes file
+                            Files.delete(FileSystems.getDefault().getPath("./input/"+filesName));
+                            // rerun function
+                            reactiveMealy();
+                        }
+                        catch(InvalidValue ex){
+                            System.err.println(ex);
+                        }
+                    }
+                    else{
+                        System.err.println("Invalid file ending. Only '.msg' files allowed.");
+                        Files.delete(FileSystems.getDefault().getPath("./input/"+filesName));
+                        reactiveMealy();
+                    }
+                }
+
             }
-            // Convert buffer to string
-            String input = userInput.toString();
-            Symbol userSymbol = new Symbol(input);
-
-            currentState = transNext(currentState, userSymbol);
-            System.out.println("Mealy entered new State: " + currentState.getState().toString());
-            // TODO Vielleicht auf Endzustand/Fehlerzustand testen !
-            System.out.println("Waiting for new input");
-            reactiveMealy();
+        }
+        catch(IOException ex){
+            // TODO maybe print all errors into err stream
+            System.err.println(ex);
+            return;
         }
     }
 }
