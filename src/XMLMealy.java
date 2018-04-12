@@ -44,7 +44,6 @@ public class XMLMealy extends Mealy{
     }
 
     public static XMLMealy createMealy(String path){
-        // TODO file.close();
         FileInputStream file = null;
         try{
             file = new FileInputStream(new File(path));
@@ -60,20 +59,17 @@ public class XMLMealy extends Mealy{
             catch(UnmarshalException ex){
                 System.out.println("Invalid xml file! Please correct.");
                 ex.printStackTrace();
-                return null;
             }
         }
         catch(FileNotFoundException ex){
             System.out.println("File does not exist. Please type in valid path to Xml file!");
-            return null; // TODO
+            ex.printStackTrace();
         }
         catch(JAXBException ex){
             ex.printStackTrace();
-            return null; // TODO
         }
-        catch (IllegalXmlFileException e) {
-            e.printStackTrace();
-            return null; // TODO
+        catch (IllegalXmlFileException ex) {
+            ex.printStackTrace();
         }
         finally{
             try{
@@ -83,6 +79,9 @@ public class XMLMealy extends Mealy{
             }
 
         }
+
+        // If function does not return a XMLMealy, return null
+        return null;
     }
 
     // TODO Wie macht man es richtig ?!?! Eltern wird nicht richtig initialisiert, wegen Xml-Annotations
