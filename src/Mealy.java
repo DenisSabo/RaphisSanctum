@@ -1,16 +1,9 @@
 import org.omg.DynamicAny.DynAnyPackage.InvalidValue;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.*;
 import java.util.HashSet;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-
-
-public abstract class Mealy implements CONS{
+public class Mealy implements CONS, Runnable{
     // name of the mealy machine
     String mealyName = new String();
 
@@ -32,15 +25,17 @@ public abstract class Mealy implements CONS{
     // table for outputs
     String outputTable[][] = {};
 
-    // "activates" mealy
-    public void runMealy() throws IOException, InvalidValue {
+    // BlockingQueues where interaction with other threads will take place
+    BlockingQueue<Symbol> inputs = new LinkedBlockingQueue<>(10);
+    BlockingQueue<Symbol> outputs = new LinkedBlockingQueue<>(10);
 
-        // Shows user the current mealy "build"
-        printMealy();
-        System.out.println("Now create .msg file with legal input symbol in the input directory!");
-
-        // "Second" reactive system, so user can interact with his mealy
-        reactiveMealy();
+    // Getter for blocking-queues are needed, because other java classes need reference, so they can be able to write
+    // or read queues
+    public BlockingQueue<Symbol> getInputs() {
+        return inputs;
+    }
+    public BlockingQueue<Symbol> getOutputs() {
+        return outputs;
     }
 
     // Some printing functions to let the user know what's happening
@@ -71,19 +66,16 @@ public abstract class Mealy implements CONS{
         }
         System.out.println("");
     }
-
     private void printTransitionTable(){
         System.out.println("The transition table looks like this:");
         final PrettyPrinter printer = new PrettyPrinter(System.out);
         printer.print(transitionTable);
     }
-
     private void printOutputTable(){
         System.out.println("The output table looks like this:");
         final PrettyPrinter printer = new PrettyPrinter(System.out);
         printer.print(outputTable);
     }
-
     private void printMealy(){
         System.out.println("Running mealy: " + mealyName);
         System.out.println("Current State: " + currentState.getState());
@@ -92,6 +84,7 @@ public abstract class Mealy implements CONS{
         printAllOutputs();
         printTransitionTable();
         printOutputTable();
+        System.out.println("Now create .msg file with legal input symbol in the input directory!");
     }
 
     public State transNext(State currentState, Symbol inputSymbol) throws InvalidValue {
@@ -101,7 +94,6 @@ public abstract class Mealy implements CONS{
 
         // Iterating through first column and searching for fitting state
         for(int i = 1; i < transitionTable.length; i++){
-            //TODO mehehehe
             if(currentState.getState().equals((Object)transitionTable[i][0])){
                 // Safe position of found state
                 statePosition = i;
@@ -163,78 +155,27 @@ public abstract class Mealy implements CONS{
         }
     }
 
+    @Override
+    public void run() {
+        // Mealy will print all necessary information for client
+        printMealy();
+        // Watch for new inputs in blocking queue, change state if new symbol and write new output in queue
+        while(true){
+            try {
+                // Try to take input symbol out of blocking-queue inputs
+                Symbol input = inputs.take();
+                // If inputs is empty, blocking queue will wait for new input in queue
+                // so following code will only be executed if there is a input in variable input
+                Symbol output = output(currentState, input); // Get output of transition
+                transNext(currentState, input); // Go into next state
+                // Write output-symbol in queue
+                outputs.put(output);
 
-    public void reactiveMealy() throws IOException, InvalidValue {
-        // Reactive system for mealy, because mealy must be able to react to users input
-        StringBuffer userInput = new StringBuffer();
-        InputStream is = System.in;
-        // A watch-service that will watch the directory "input" for changes
-        WatchService watcher = FileSystems.getDefault().newWatchService();
-        Path dir = FileSystems.getDefault().getPath("./input");
-        try{// wait for key to be signaled
-            WatchKey key = dir.register(watcher, ENTRY_CREATE);
-            // event processing loop
-            while(true){
-                try{
-
-                    key = watcher.take();
-                }
-                catch(InterruptedException ex){
-                    System.err.println(ex);
-                    return;
-                }
-                for (WatchEvent<?> event: key.pollEvents()) {
-                    WatchEvent.Kind<?> kind = event.kind();
-
-                    // This key is registered only
-                    // for ENTRY_CREATE events,
-                    // but an OVERFLOW event can
-                    // occur regardless if events
-                    // are lost or discarded.
-                    if (kind == OVERFLOW) {
-                        continue;
-                    }
-
-                    // The filename is the in context of the event.
-                    WatchEvent<Path> ev = (WatchEvent<Path>)event;
-                    Path filename = ev.context();
-
-                    // Use filename as symbol
-                    // but first check if filending is "msg"
-                    String filesName = filename.getFileName().toString();
-                    if(CONS.checkFileEnding(filesName, "msg")){
-                        Symbol fileSymbol = new Symbol(filesName.split("\\.")[0]);
-                        // try to change to next state
-                        try {
-                            Symbol outputSymbol = output(currentState, fileSymbol);
-                            // Creates a file with name of associated output symbol in output directory
-                            File f = new File("./output/" + outputSymbol.getSymbol().toString() + ".msg");
-                            f.getParentFile().mkdirs();
-                            f.createNewFile();
-                            // go into next state
-                            currentState = transNext(currentState, fileSymbol);
-                            // deletes file
-                            Files.delete(FileSystems.getDefault().getPath("./input/"+filesName));
-                            // rerun function
-                            reactiveMealy();
-                        }
-                        catch(InvalidValue ex){
-                            System.err.println(ex);
-                        }
-                    }
-                    else{
-                        System.err.println("Invalid file ending. Only '.msg' files allowed.");
-                        Files.delete(FileSystems.getDefault().getPath("./input/"+filesName));
-                        reactiveMealy();
-                    }
-                }
-
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (InvalidValue invalidValue) {
+                invalidValue.printStackTrace();
             }
-        }
-        catch(IOException ex){
-            // TODO maybe print all errors into err stream
-            System.err.println(ex);
-            return;
         }
     }
 }

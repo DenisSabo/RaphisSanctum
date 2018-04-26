@@ -159,7 +159,7 @@ public class XMLMealy extends Mealy{
                     System.out.println("The symbol: '");
                     System.out.print(inputSymbol);
                     System.out.print("' is not defined in the input alphabet.");
-                    throw new IllegalXmlFileException();
+                    throw new IllegalXmlFileException("Bljad");
                 }
                 if(statePosition == 0){
                     System.out.println("The state: '");
@@ -167,7 +167,7 @@ public class XMLMealy extends Mealy{
                     System.out.print("' is not defined in the states of your xml file.");
                 }
                 System.out.println("Please correct.");
-                throw new IllegalXmlFileException();
+                throw new IllegalXmlFileException("Bljad durak ti!");
 
             }
             transitionTable[statePosition][inputSymbolPosition] = stateFinal;

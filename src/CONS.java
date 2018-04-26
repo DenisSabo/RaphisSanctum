@@ -12,4 +12,16 @@ public interface CONS {
         if(expectedEnding.equals(extension)) return true;
         else return false;
     }
+
+    // Gets filename without ending
+    public static String getFileName(String filenameWithEnding){
+        String filename = "";
+
+        int i = filenameWithEnding.lastIndexOf('.');
+        if (i > 0) {
+            filename = filenameWithEnding.substring(0, i);
+            return filename;
+        }
+        return null;
+    }
 }
