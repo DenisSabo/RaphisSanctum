@@ -1,3 +1,5 @@
+package mealy.helpingClasses;
+
 import java.io.PrintStream;
 
 import static java.lang.String.format;

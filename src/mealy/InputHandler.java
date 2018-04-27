@@ -1,7 +1,10 @@
+package mealy;
+
+import mealy.helpingClasses.CONS;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.concurrent.BlockingQueue;
-
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
@@ -25,7 +28,6 @@ public class InputHandler implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("InputHandler is running!");
         // wait for key to be signaled
         WatchKey key;
         while (true) {
@@ -51,7 +53,6 @@ public class InputHandler implements Runnable {
                 WatchEvent<Path> ev = (WatchEvent<Path>) event;
                 Path filename = ev.context();
                 String filesName = filename.getFileName().toString();
-                System.out.println(filesName + " will be added to blocking queue");
                 if (CONS.checkFileEnding(filesName, "msg")) {
                     Symbol inputSymbol = new Symbol(CONS.getFileName(filesName));
                     // Try to put new input symbol in blocking queue

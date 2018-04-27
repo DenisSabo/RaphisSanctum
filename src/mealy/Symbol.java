@@ -1,3 +1,5 @@
+package mealy;
+
 public class Symbol<K>{
     private K symbol;
 

@@ -1,3 +1,5 @@
+package mealy;
+
 public class State<K>{
     private K state;
 

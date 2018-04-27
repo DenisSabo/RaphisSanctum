@@ -1,3 +1,7 @@
+package mealy;
+
+import mealy.helpingClasses.CONS;
+import mealy.helpingClasses.PrettyPrinter;
 import org.omg.DynamicAny.DynAnyPackage.InvalidValue;
 import java.util.HashSet;
 import java.util.concurrent.BlockingQueue;
@@ -5,25 +9,25 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Mealy implements CONS, Runnable{
     // name of the mealy machine
-    String mealyName = new String();
+    protected String mealyName = new String();
 
     // current state of the mealy machine
-    State currentState;
+    protected State currentState;
 
     // set of all possible states of the mealy machine
-    HashSet<State> states = new HashSet<>();
+    protected HashSet<State> states = new HashSet<>();
 
     // input alphabet
-    HashSet<Symbol> inputSymbols = new HashSet<>();
+    protected HashSet<Symbol> inputSymbols = new HashSet<>();
 
     // output alphabet
-    HashSet<Symbol> outputSymbols = new HashSet<>();
+    protected HashSet<Symbol> outputSymbols = new HashSet<>();
 
     // transition table
-    String transitionTable[][] = {};
+    protected String transitionTable[][] = {};
 
     // table for outputs
-    String outputTable[][] = {};
+    protected String outputTable[][] = {};
 
     // BlockingQueues where interaction with other threads will take place
     BlockingQueue<Symbol> inputs = new LinkedBlockingQueue<>(10);

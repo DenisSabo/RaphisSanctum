@@ -1,5 +1,4 @@
-import com.sun.xml.internal.txw2.output.XmlSerializer;
-import org.xml.sax.SAXParseException;
+package xml;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -8,11 +7,14 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 import java.io.*;
 import java.util.HashSet;
+import mealy.Mealy;
+import mealy.State;
+import mealy.Symbol;
+import myExceptions.IllegalXmlFileException;
 
-
-@XmlRootElement(name="Mealy")
+@XmlRootElement(name= "Mealy")
 @XmlAccessorType(XmlAccessType.NONE)
-public class XMLMealy extends Mealy{
+public class XmlMealy extends Mealy {
 
     // Attribute will be deserialized from xml-file and safed into this variable
     @XmlAttribute(name="name", required=true)
@@ -39,26 +41,28 @@ public class XMLMealy extends Mealy{
     private String outputTable[][] = {};
 
 
-    public XMLMealy(){
+    public XmlMealy(){
         // default constructor
     }
 
-    public static XMLMealy createMealy(String path){
+    // Returns a XmlMealy/Mealy, that was created out of a Xml-File
+    public static XmlMealy createMealy(String path) throws IllegalXmlFileException{
         FileInputStream file = null;
         try{
             file = new FileInputStream(new File(path));
-            JAXBContext ctx= JAXBContext.newInstance(XMLMealy.class);
+            JAXBContext ctx= JAXBContext.newInstance(XmlMealy.class);
             // Deserialize
             Unmarshaller u = ctx.createUnmarshaller();
             try{
-                XMLMealy k = (XMLMealy) u.unmarshal(file);
+                XmlMealy k = (XmlMealy) u.unmarshal(file);
                 k.initializeTables();
                 k.initializeParent();
+                if(k == null) throw new IllegalXmlFileException("Invalid Xml-File. Unable to deserialize.");
                 return k;
             }
             catch(UnmarshalException ex){
-                System.out.println("Invalid xml file! Please correct.");
                 ex.printStackTrace();
+                throw new IllegalXmlFileException("Invalid Xml-File. Unable to deserialize.");
             }
         }
         catch(FileNotFoundException ex){
@@ -66,9 +70,6 @@ public class XMLMealy extends Mealy{
             ex.printStackTrace();
         }
         catch(JAXBException ex){
-            ex.printStackTrace();
-        }
-        catch (IllegalXmlFileException ex) {
             ex.printStackTrace();
         }
         finally{
@@ -138,7 +139,7 @@ public class XMLMealy extends Mealy{
                 if(stateInitial.equals(transitionTable[i][0])){
                     // Safe position of found state
                     statePosition = i;
-                    break; // TODO "schlechter Programmierstil" -> while Schleife
+                    break;
                 }
             }
 
@@ -154,21 +155,18 @@ public class XMLMealy extends Mealy{
             // Input symbol was not found in first row or ...
             // ... state was not found in first column and so the xml file "is wrong"
             if(inputSymbolPosition == 0 || statePosition == 0){
-                // Illegal Xml-File. Symbol or state used in transition, that is not defined!!!
+                // Illegal Xml-File. Symbol or state was used in transition-tag, that was not defined before
+                // (input-symbols, states)-tag !
                 if(inputSymbolPosition == 0){
-                    System.out.println("The symbol: '");
-                    System.out.print(inputSymbol);
-                    System.out.print("' is not defined in the input alphabet.");
-                    throw new IllegalXmlFileException("Bljad");
+                    // Illegal symbol
+                    throw new IllegalXmlFileException("Symbol " + inputSymbol + " is not defined in the input alphabet." +
+                        " Please correct.");
                 }
                 if(statePosition == 0){
-                    System.out.println("The state: '");
-                    System.out.print(stateInitial);
-                    System.out.print("' is not defined in the states of your xml file.");
+                    // Illegal state
+                    throw new IllegalXmlFileException("State " + stateInitial + " is not defined in tag <states>. " +
+                            "Please correct.");
                 }
-                System.out.println("Please correct.");
-                throw new IllegalXmlFileException("Bljad durak ti!");
-
             }
             transitionTable[statePosition][inputSymbolPosition] = stateFinal;
             outputTable[statePosition][inputSymbolPosition] = outputSymbol;
