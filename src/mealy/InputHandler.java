@@ -29,7 +29,6 @@ public class InputHandler implements Runnable {
     @Override
     public void run() {
         // wait for key to be signaled
-        WatchKey key;
         while (true) {
             try {
                 key = watcher.take();
@@ -54,9 +53,13 @@ public class InputHandler implements Runnable {
                 Path filename = ev.context();
                 String filesName = filename.getFileName().toString();
                 if (CONS.checkFileEnding(filesName, "msg")) {
-                    Symbol inputSymbol = new Symbol(CONS.getFileName(filesName));
+                    // Get filename without file extension
+                    String nameWithoutEnding = CONS.getFileName(filesName);
+
+                    Symbol inputSymbol = new Symbol(nameWithoutEnding);
                     // Try to put new input symbol in blocking queue
                     try {
+                        // Pass symbol into queue
                         inputSymbols.put(inputSymbol);
 
                     } catch (InterruptedException e) {
@@ -66,10 +69,25 @@ public class InputHandler implements Runnable {
                     try {
                         Path pathToDelete = Paths.get("./input/" + filesName);
                         Files.delete(pathToDelete);
+
+                        // Check if Symbol was "end" -> Yes: Close this thread
+                        if(nameWithoutEnding.equals("end")){
+                            return; // Closes this thread
+                        }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
+            }
+            // Reset the key -- this step is critical if you want to
+            // receive further watch events.  If the key is no longer valid,
+            // the directory is inaccessible so exit the loop.
+            boolean valid = key.reset();
+            if (!valid) {
+                // TODO stop thread, and others as well!
+                System.err.println("Unable to watch input-directory anymore. Please restart service.");
+                break;
             }
         }
     }

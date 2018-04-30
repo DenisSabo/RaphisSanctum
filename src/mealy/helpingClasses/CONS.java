@@ -32,10 +32,11 @@ public interface CONS {
 
     public static String listenToUserInput(){
         StringBuffer buffer = new StringBuffer();
+        // Listening to users input
+        InputStream is = System.in;
+        // TODO muss man System.in schließen?????
         while(true)
         {
-            // Listening to users input
-            InputStream is = System.in;
             try {
                 int c = 0;
                 while ((c = is.read()) > EOF) {
@@ -46,10 +47,12 @@ public interface CONS {
                 // convert buffer to string
                 String userinput = buffer.toString();
                 return userinput;
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
 
 }

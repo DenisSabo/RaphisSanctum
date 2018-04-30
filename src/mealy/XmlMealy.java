@@ -1,16 +1,20 @@
-package xml;
+package mealy;
+
+import mealy.helpingClasses.CONS;
+import mealy.xml.Transition;
+import mealy.xml.Transitions;
+import myExceptions.IllegalXmlFileException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
-import mealy.Mealy;
-import mealy.State;
-import mealy.Symbol;
-import myExceptions.IllegalXmlFileException;
 
 @XmlRootElement(name= "Mealy")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -41,12 +45,20 @@ public class XmlMealy extends Mealy {
     private String outputTable[][] = {};
 
 
-    public XmlMealy(){
+    public XmlMealy() throws IOException {
+        super();
         // default constructor
     }
 
     // Returns a XmlMealy/Mealy, that was created out of a Xml-File
-    public static XmlMealy createMealy(String path) throws IllegalXmlFileException{
+    public static XmlMealy createMealy(String path) throws IllegalXmlFileException {
+        // If user gives no input, a "default-mealy"/Ampel will be started.
+        if(path.equals("")) path = "./ExampleXml/ampel.xml";
+
+        if(!CONS.checkFileEnding(path, "xml")){
+            throw new IllegalXmlFileException("File is not a Xml-File. Please correct.");
+        }
+
         FileInputStream file = null;
         try{
             file = new FileInputStream(new File(path));
@@ -57,12 +69,15 @@ public class XmlMealy extends Mealy {
                 XmlMealy k = (XmlMealy) u.unmarshal(file);
                 k.initializeTables();
                 k.initializeParent();
-                if(k == null) throw new IllegalXmlFileException("Invalid Xml-File. Unable to deserialize.");
                 return k;
             }
             catch(UnmarshalException ex){
                 ex.printStackTrace();
-                throw new IllegalXmlFileException("Invalid Xml-File. Unable to deserialize.");
+                System.err.println("Invalid Xml-File. Unable to deserialize.");
+                return null;
+            } catch (IllegalXmlFileException e) {
+                e.printStackTrace();
+                return null;
             }
         }
         catch(FileNotFoundException ex){
@@ -74,6 +89,7 @@ public class XmlMealy extends Mealy {
         }
         finally{
             try{
+                // Try to close opened stream/resource
                 file.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -87,13 +103,13 @@ public class XmlMealy extends Mealy {
 
     // TODO Wie macht man es richtig ?!?! Eltern wird nicht richtig initialisiert, wegen Xml-Annotations
     private void initializeParent(){
-        super.mealyName = mealyName;
-        super.states = toState(states);
-        super.inputSymbols = toSymbol(inputSymbols);
-        super.outputSymbols = toSymbol(outputSymbols);
-        super.transitionTable = transitionTable;
-        super.outputTable = outputTable;
-        super.currentState = new State(startingState);
+        super.setMealyName(mealyName);
+        super.setStates(toState(states));
+        super.setInputSymbols(toSymbol(inputSymbols));
+        super.setOutputSymbols(toSymbol(outputSymbols));
+        super.setTransitionTable(transitionTable);
+        super.setOutputTable(outputTable);
+        super.setCurrentState(new State(startingState));
     }
 
     // Initializes the transition table, that is currently a empty two dimensional array

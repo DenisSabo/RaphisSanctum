@@ -2,36 +2,49 @@ package mealy;
 
 import mealy.helpingClasses.CONS;
 import mealy.helpingClasses.PrettyPrinter;
+import org.apache.commons.io.FileUtils;
 import org.omg.DynamicAny.DynAnyPackage.InvalidValue;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Mealy implements CONS, Runnable{
     // name of the mealy machine
-    protected String mealyName = new String();
+    private String mealyName;
 
     // current state of the mealy machine
-    protected State currentState;
+    private State currentState;
 
     // set of all possible states of the mealy machine
-    protected HashSet<State> states = new HashSet<>();
+    private HashSet<State> states = new HashSet<>();
 
     // input alphabet
-    protected HashSet<Symbol> inputSymbols = new HashSet<>();
+    private HashSet<Symbol> inputSymbols = new HashSet<>();
 
     // output alphabet
-    protected HashSet<Symbol> outputSymbols = new HashSet<>();
+    private HashSet<Symbol> outputSymbols = new HashSet<>();
 
     // transition table
-    protected String transitionTable[][] = {};
+    private String transitionTable[][] = {};
 
     // table for outputs
-    protected String outputTable[][] = {};
+    private String outputTable[][] = {};
 
     // BlockingQueues where interaction with other threads will take place
     BlockingQueue<Symbol> inputs = new LinkedBlockingQueue<>(10);
     BlockingQueue<Symbol> outputs = new LinkedBlockingQueue<>(10);
+
+    // Class InputHandler handles input by watching directory "input" and writing new symbols into inputs
+    InputHandler handleInput = new InputHandler(inputs);
+    // Class OutputHandler handles output by reading from outputs directory (that is filled by mealy) and
+    // writing new outputs into directory "output"
+    OutputHandler handleOutput = new OutputHandler(outputs);
+    // InputHandler and OutputHandler will run in own threads
+    Thread forInputs = new Thread(handleInput);
+    Thread forOutputs = new Thread(handleOutput);
 
     // Getter for blocking-queues are needed, because other java classes need reference, so they can be able to write
     // or read queues
@@ -40,6 +53,10 @@ public class Mealy implements CONS, Runnable{
     }
     public BlockingQueue<Symbol> getOutputs() {
         return outputs;
+    }
+
+    public Mealy() throws IOException {
+        // default constructor
     }
 
     // Some printing functions to let the user know what's happening
@@ -60,6 +77,7 @@ public class Mealy implements CONS, Runnable{
             System.out.print("' ");
         }
         System.out.println("");
+        System.out.println("Create 'end.msg'-file in input-directory, to stop all threads properly.");
     }
     private void printAllOutputs(){
         System.out.println("Possible outputs: ");
@@ -91,7 +109,7 @@ public class Mealy implements CONS, Runnable{
         System.out.println("Now create .msg file with legal input symbol in the input directory!");
     }
 
-    public State transNext(State currentState, Symbol inputSymbol) throws InvalidValue {
+    public void transNext(Symbol inputSymbol) throws InvalidValue {
         // Safes indexes of found elements
         int statePosition = 0;
         int inputSymbolPosition = 0;
@@ -120,13 +138,13 @@ public class Mealy implements CONS, Runnable{
         }
         else{
             State nextState = new State(transitionTable[statePosition][inputSymbolPosition]);
+            currentState = nextState; // Changes currentState
             System.out.println("Next state: " + nextState.getState().toString());
-            return nextState;
         }
     }
 
     // TODO almost the same as transNext ...
-    public Symbol output(State currentState, Symbol inputSymbol) throws InvalidValue{
+    public Symbol output(Symbol inputSymbol) throws InvalidValue{
         // Safes indexes of found elements
         int statePosition = 0;
         int inputSymbolPosition = 0;
@@ -161,19 +179,31 @@ public class Mealy implements CONS, Runnable{
 
     @Override
     public void run() {
+        // First step: Start threads that handle input and output symbols
+        forInputs.start(); // Actually a InputHandler
+        forOutputs.start(); // Actually a OutputHandler
+
         // Mealy will print all necessary information for client
         printMealy();
         // Watch for new inputs in blocking queue, change state if new symbol and write new output in queue
         while(true){
             try {
-                // Try to take input symbol out of blocking-queue inputs
+                // Try to take input symbol out of blocking-queue inputs, which is written by InputHandler
                 Symbol input = inputs.take();
-                // If inputs is empty, blocking queue will wait for new input in queue
-                // so following code will only be executed if there is a input in variable input
-                Symbol output = output(currentState, input); // Get output of transition
-                transNext(currentState, input); // Go into next state
+
+                // Symbol "end" is like a command to stop the mealy with its threads
+                if(input.getSymbol().equals("end")){
+                    outputs.put(input); // Informs thread that he has to stop
+                    closeMealy();
+                    return; // Stops this thread
+                }
+
+                Symbol output = output(input); // Get output of transition
                 // Write output-symbol in queue
                 outputs.put(output);
+
+                transNext(input); // Go into next state
+
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -181,5 +211,51 @@ public class Mealy implements CONS, Runnable{
                 invalidValue.printStackTrace();
             }
         }
+    }
+
+    public void setMealyName(String mealyName) {
+        this.mealyName = mealyName;
+    }
+
+    public void setCurrentState(State currentState) {
+        this.currentState = currentState;
+    }
+
+    public void setOutputTable(String[][] outputTable) {
+        this.outputTable = outputTable;
+    }
+
+    public void setTransitionTable(String[][] transitionTable) {
+        this.transitionTable = transitionTable;
+    }
+
+    public void setStates(HashSet<State> states) {
+        this.states = states;
+    }
+
+    public void setInputSymbols(HashSet<Symbol> inputSymbols) {
+        this.inputSymbols = inputSymbols;
+    }
+
+    public void setOutputSymbols(HashSet<Symbol> outputSymbols) {
+        this.outputSymbols = outputSymbols;
+    }
+
+    private void deleteOutputs() {
+        try {
+
+            FileUtils.cleanDirectory(new File("./output/"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeMealy(){
+        if(forInputs.isAlive()) forInputs.interrupt(); // Check if thread is still alive and close if so
+        if(forOutputs.isAlive()) forOutputs.interrupt(); // -"-
+        deleteOutputs(); // Cleans Output-directory
+        System.out.println("");
+        System.out.println("''''''''''''''''''''''''''Closed Mealy successfully''''''''''''''''''''''''''");
+        System.out.println("");
     }
 }

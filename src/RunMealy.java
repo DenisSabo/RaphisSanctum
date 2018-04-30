@@ -1,56 +1,55 @@
-package mealy;
-
+import mealy.XmlMealy;
 import mealy.helpingClasses.CONS;
 import myExceptions.IllegalXmlFileException;
-import xml.XmlMealy;
+
 import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class RunMealy implements CONS {
-
-    // Blocking queues for input and output
-    public static final BlockingQueue<Symbol> inputs = new LinkedBlockingQueue<Symbol>(10);
-    public static final BlockingQueue<Symbol> outputs = new LinkedBlockingQueue<Symbol>(10);
-
     // Mealy machine
     // INPUT: C:\path\to\bsp.xml
-    public static void main(String[] args) throws IOException, IllegalXmlFileException {
+    // Todo write own class to handle errors
+    public static void main(String[] args){
+        while(true){
+            runMealy();
+        }
+    }
+
+    private static void runMealy(){
         // tell user what to do
         System.out.println("Please type in the path to the xml file, representing a Mealy.");
+        System.out.println("You can just press enter, and a default.xml file will be loaded!");
 
-        // "Reactive" function listenToUserInput
+        // "Reactive" function that listens to user's input
         String userInput = CONS.listenToUserInput();
 
-        // Now check if file has ".xml"-ending
-        if(CONS.checkFileEnding(userInput, "xml")){
-            // Instantiate new XmlMealy
-            XmlMealy xm = new XmlMealy();
-
-            // Try to create a Mealy out of Xml-File
-            try{
-                xm = xm.createMealy(userInput);
-            }
-            catch(IllegalXmlFileException ex){
-                // If xml-file was invalid, go back into main function (maybe user will give legal file now)
-                main(args);
-            }
-            // Get queues of generated mealy and pass them to handler
-            /* InputHandler watches input-directory and writes new input symbols into
-                referenced (input) queue, that will be read by mealy */
-            InputHandler inputHandler = new InputHandler(xm.getInputs());
-            /* OutputHandler watches/reads referenced (output) queue (filled my mealy)
-                and writes "output-"files into output directory */
-            OutputHandler outputHandler = new OutputHandler(xm.getOutputs());
-
-            // Run three different threads, that will communicate through queues of mealy
-            new Thread(inputHandler).start();
-            new Thread(outputHandler).start();
-            new Thread(xm).start();
+        // Instantiate new XmlMealy
+        XmlMealy xm = null;
+        try {
+            xm = new XmlMealy();
+        } catch (IOException e) {
+            e.printStackTrace(); // Todo throws error in main
         }
-        else{
-            System.out.println("File has to be a Xml-File. Please try again.");
-            main(args);
+
+        // Create Mealy out of xml-file
+        try {
+            xm = xm.createMealy(userInput);
+        } catch (IllegalXmlFileException e) { // Todo throws error in main
+            e.printStackTrace();
+        }
+
+        Thread mealy = new Thread(xm);
+
+        // Starts mealy in own thread
+        mealy.start();
+
+        try {
+            // Main has to wait, till mealy-thread stops
+            mealy.join();
+            // If mealy thread has stopped, program will be restarted because of while(true){...}
+            System.out.println("Restart program");
+
+        } catch (InterruptedException e) { // Todo throws error in main
+            e.printStackTrace();
         }
     }
 }
