@@ -18,6 +18,8 @@ public class Mealy implements CONS, Runnable{
     // current state of the mealy machine
     private State currentState;
 
+    private State finalState;
+
     // set of all possible states of the mealy machine
     private HashSet<State> states = new HashSet<>();
 
@@ -194,7 +196,7 @@ public class Mealy implements CONS, Runnable{
                 // Symbol "end" is like a command to stop the mealy with its threads
                 if(input.getSymbol().equals("end")){
                     outputs.put(input); // Informs thread that he has to stop
-                    closeMealy();
+
                     return; // Stops this thread
                 }
 
@@ -203,6 +205,12 @@ public class Mealy implements CONS, Runnable{
                 outputs.put(output);
 
                 transNext(input); // Go into next state
+                if(currentState.getState().equals(finalState.getState())){
+                    // Checks if Mealy is in state, that indicates end of mealy
+                    // if so -> Close All threads, and mealy itself (Zentrale Stelle, die alle Threads schließt)
+                    closeMealy();
+                    return;
+                }
 
 
             } catch (InterruptedException e) {
@@ -241,6 +249,10 @@ public class Mealy implements CONS, Runnable{
         this.outputSymbols = outputSymbols;
     }
 
+    public void setFinalState(State finalState) {
+        this.finalState = finalState;
+    }
+
     private void deleteOutputs() {
         try {
 
@@ -251,8 +263,8 @@ public class Mealy implements CONS, Runnable{
     }
 
     private void closeMealy(){
-        if(forInputs.isAlive()) forInputs.interrupt(); // Check if thread is still alive and close if so
-        if(forOutputs.isAlive()) forOutputs.interrupt(); // -"-
+        if(forInputs.isAlive()) forInputs.interrupt();
+        if(forOutputs.isAlive()) forOutputs.interrupt();
         deleteOutputs(); // Cleans Output-directory
         System.out.println("");
         System.out.println("''''''''''''''''''''''''''Closed Mealy successfully''''''''''''''''''''''''''");

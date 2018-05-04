@@ -14,6 +14,7 @@ public class RunMealy implements CONS {
         }
     }
 
+    // TODO Sicherheitsfassade
     private static void runMealy(){
         // tell user what to do
         System.out.println("Please type in the path to the xml file, representing a Mealy.");

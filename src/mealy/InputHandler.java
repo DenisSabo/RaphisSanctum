@@ -14,7 +14,7 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 * */
 public class InputHandler implements Runnable {
     // Reference to a blocking queue in which this class can write new input symbols by watching input directory
-    BlockingQueue<Symbol> inputSymbols;
+    private BlockingQueue<Symbol> inputSymbols;
 
     // WatcherService that will watch directory input/
     WatchService watcher = FileSystems.getDefault().newWatchService();
@@ -69,11 +69,6 @@ public class InputHandler implements Runnable {
                     try {
                         Path pathToDelete = Paths.get("./input/" + filesName);
                         Files.delete(pathToDelete);
-
-                        // Check if Symbol was "end" -> Yes: Close this thread
-                        if(nameWithoutEnding.equals("end")){
-                            return; // Closes this thread
-                        }
 
                     } catch (IOException e) {
                         e.printStackTrace();

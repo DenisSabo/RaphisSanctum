@@ -1,9 +1,11 @@
 <Mealy name="Ampel">
     <inputSymbols>0 1</inputSymbols>
 
-    <states>ROT GELB GRÜN</states>
+    <states>ROT GELB GRÜN END</states>
 
     <starting_state>GRÜN</starting_state>
+
+    <final_state>END</final_state>
 
     <outputSymbols>00 01 11</outputSymbols>
 
@@ -23,7 +25,7 @@
         <Transition>
             <state_initial>GRÜN</state_initial>
             <input_symbol>1</input_symbol>
-            <state_final>GRÜN</state_final>
+            <state_final>END</state_final>
             <output_symbol>11</output_symbol>
         </Transition>
         <Transition>
@@ -41,7 +43,7 @@
         <Transition>
             <state_initial>ROT</state_initial>
             <input_symbol>0</input_symbol>
-            <state_final>ROT</state_final>
+            <state_final>END</state_final>
             <output_symbol>00</output_symbol>
         </Transition>
     </Transitions>

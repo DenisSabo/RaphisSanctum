@@ -24,6 +24,9 @@ public class XmlMealy extends Mealy {
     @XmlAttribute(name="name", required=true)
     private String mealyName;
 
+    @XmlElement(name = "final_state", required = true)
+    private String finalState;
+
     @XmlElement(name = "starting_state", required = true)
     private String startingState;
 
@@ -35,6 +38,7 @@ public class XmlMealy extends Mealy {
 
     @XmlList
     private HashSet<String> outputSymbols = new HashSet<>();
+
 
     @XmlElement(name = "Transitions")
     // Wrapper/Parent of all transition elements (contains output symbols as well)
@@ -110,6 +114,7 @@ public class XmlMealy extends Mealy {
         super.setTransitionTable(transitionTable);
         super.setOutputTable(outputTable);
         super.setCurrentState(new State(startingState));
+        super.setFinalState(new State(finalState));
     }
 
     // Initializes the transition table, that is currently a empty two dimensional array
