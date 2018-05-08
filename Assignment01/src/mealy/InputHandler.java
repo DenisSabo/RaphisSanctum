@@ -10,7 +10,9 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 /*
 * Author: Denis Sabolotni
-* Description: InputHandler watches the input-directory and writes the .msg inputs into given blocking-queue
+* Description: InputHandler watches the input-directory and writes the Input Symbols into referenced blocking-queue
+*               Role: Producer
+*               Instance of class Mealy is consumer of this input symbols
 * */
 public class InputHandler implements Runnable {
     // Reference to a blocking queue in which this class can write new input symbols by watching input directory
