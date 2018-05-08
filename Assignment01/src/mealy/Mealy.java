@@ -11,6 +11,15 @@ import java.util.HashSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/*
+* Author: Denis Sabolotni
+* Description: Mealy: Handles transition into new states, and produces Output Symbols, accordingly to current new state.
+*               Has printing-functions to present all needed information for user.
+*               Role: Producer and Consumer
+*               Producer: produces Output symbols and writes them into BlockingQueue for output symbols
+*               Consumer: Waits for input symbols in BlockingQueue for input symbols
+*               3 threads: Mealy itself, InputHandler and OutputHandler. Communication over BlockingQueues
+* */
 public class
 Mealy implements CONS, Runnable{
     // name of the mealy machine
@@ -80,7 +89,6 @@ Mealy implements CONS, Runnable{
             System.out.print("' ");
         }
         System.out.println("");
-        System.out.println("Create 'end.msg'-file in input-directory, to stop all threads properly.");
     }
     private void printAllOutputs(){
         System.out.println("Possible outputs: ");
@@ -112,14 +120,16 @@ Mealy implements CONS, Runnable{
         System.out.println("Now create .msg file with legal input symbol in the input directory!");
     }
 
-    public void transNext(Symbol inputSymbol) throws InvalidValue {
-        // Safes indexes of found elements
+    // function searches for right value by finding given input symbol in first row
+    // and by finding current state in first column
+    private String iterateTable(Symbol input, String table[][]) throws InvalidValue {
+        // Variables safe column and row position, so right table cell(value) can be returned
         int statePosition = 0;
         int inputSymbolPosition = 0;
 
         // Iterating through first column and searching for fitting state
-        for(int i = 1; i < transitionTable.length; i++){
-            if(currentState.getState().equals((Object)transitionTable[i][0])){
+        for(int i = 1; i < table.length; i++){
+            if(currentState.getState().equals((Object)table[i][0])){
                 // Safe position of found state
                 statePosition = i;
                 break;
@@ -127,57 +137,39 @@ Mealy implements CONS, Runnable{
         }
 
         // Iterating through first row and searching for fitting symbol
-        for(int j = 1; j < transitionTable[0].length; j++){
-            if(inputSymbol.getSymbol().equals(transitionTable[0][j])){
+        for(int j = 1; j < table[0].length; j++){
+            if(input.getSymbol().equals(table[0][j])){
                 // Safe position of found symbol
                 inputSymbolPosition = j;
                 break;
             }
         }
-        if(statePosition == 0 || inputSymbolPosition == 0){
-            System.out.println("Please use symbols in the alphabet.");
+        // If inputSymbolPosition has value 0, Symbol was not found in table -> User used wrong input-symbol
+        if(inputSymbolPosition == 0){
+            System.err.println("Please use symbols that exist in the alphabet.");
             printAllInputs();
             throw new InvalidValue();
         }
+        else if(statePosition == 0){
+            // Only happens if current state was not found in table -> happens if there is a mistake in xml file
+            System.err.println("Probably something wrong with your Xml-File. Could not find current state");
+            System.err.println(currentState.getState());
+            throw new InvalidValue();
+        }
         else{
-            State nextState = new State(transitionTable[statePosition][inputSymbolPosition]);
-            currentState = nextState; // Changes currentState
-            System.out.println("Next state: " + nextState.getState().toString());
+            return table[statePosition][inputSymbolPosition];
         }
     }
 
-    // TODO almost the same as transNext ...
+    public void transNext(Symbol inputSymbol) throws InvalidValue {
+        State nextState = new State(iterateTable(inputSymbol, transitionTable));
+        currentState = nextState; // Changes currentState
+        System.out.println("Next state: " + nextState.getState().toString());
+    }
+
     public Symbol output(Symbol inputSymbol) throws InvalidValue{
-        // Safes indexes of found elements
-        int statePosition = 0;
-        int inputSymbolPosition = 0;
-
-        // Iterating through first column and searching for fitting state
-        for(int i = 1; i < outputTable.length; i++){
-            if(currentState.getState().equals((Object)outputTable[i][0])){
-                // Safe position of found state
-                statePosition = i;
-                break;
-            }
-        }
-
-        // Iterating through first row and searching for fitting symbol
-        for(int j = 1; j < outputTable[0].length; j++){
-            if(inputSymbol.getSymbol().equals(outputTable[0][j])){
-                // Safe position of found symbol
-                inputSymbolPosition = j;
-                break;
-            }
-        }
-        if(statePosition == 0 || inputSymbolPosition == 0){
-            System.out.println("Please use symbols that exist in the alphabet.");
-            printAllInputs();
-            throw new InvalidValue();
-        }
-        else{
-            // TODO bad solution
-            return new Symbol(outputTable[statePosition][inputSymbolPosition]);
-        }
+        String output = iterateTable(inputSymbol, outputTable);
+        return new Symbol(output);
     }
 
     @Override
@@ -256,7 +248,7 @@ Mealy implements CONS, Runnable{
 
     private void deleteOutputs() {
         try {
-
+            // Clean output-directory
             FileUtils.cleanDirectory(new File("./output/"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -264,6 +256,7 @@ Mealy implements CONS, Runnable{
     }
 
     private void closeMealy(){
+        // Closes complete Mealy (All 3 threads)
         if(forInputs.isAlive()) forInputs.interrupt();
         if(forOutputs.isAlive()) forOutputs.interrupt();
         deleteOutputs(); // Cleans Output-directory
