@@ -1,14 +1,18 @@
-## First assignment of "Verteilte Verarbeitung"
+# Assignment_01 of "Verteilte Verarbeitung"
+## Reactive Mealy
+This program will read a Xml-File and translate it into a working Mealy Machine.
 
+#### Getting Started
 
-#### Reactive System - Getting Started
+1. Try to get the code running in your IDE
 
-1. Try to get the code running in your IntelliJ
+2. Follow instructions of program (Console)
 
-2. Type the path to the "bsp.xml" into the console
+#### Default Mealy
+You can use the default mealy by just pressing enter, when the code is running
 
-3. Now the program will translate the xml-file into a real running Mealy machine
+or 
 
-4. Follow instructions of the program
+you write your own mealy in Xml oriented on default mealy and give path to file
 
 ![Sketch of traffic light mealy (Default Mealy used by pressing enter)](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/Assignment01/doc/AmpelMealy.jpg)
