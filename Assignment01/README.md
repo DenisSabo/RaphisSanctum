@@ -13,6 +13,6 @@ You can use the default mealy by just pressing enter, when the code is running
 
 or 
 
-you write your own mealy in Xml oriented on default mealy and give path to file
+you can write your own mealy in Xml oriented on default mealy and give path to file
 
-![Sketch of traffic light mealy (Default Mealy used by pressing enter)](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/Assignment01/doc/AmpelMealy.jpg)
+![Sketch of traffic light mealy (Default Mealy used when enter have been pressed)](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/Assignment01/doc/AmpelMealy.jpg)
