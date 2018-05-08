@@ -10,3 +10,5 @@
 3. Now the program will translate the xml-file into a real running Mealy machine
 
 4. Follow instructions of the program
+
+![Sketch of traffic light mealy (Default Mealy used by pressing enter)](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/doc/AmpelMealy.jpg)
