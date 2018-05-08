@@ -16,15 +16,16 @@ public class InputHandler implements Runnable {
     // Reference to a blocking queue in which this class can write new input symbols by watching input directory
     private BlockingQueue<Symbol> inputSymbols;
 
+    //Constructor that will get a reference to a BlockingQueue (BlockingQueue of Mealy)
+    public InputHandler(BlockingQueue<Symbol> inputSymbolsQueue) throws IOException {
+        this.inputSymbols = inputSymbolsQueue;
+    }
+
     // WatcherService that will watch directory input/
     WatchService watcher = FileSystems.getDefault().newWatchService();
     Path dir = Paths.get("./input/");
 
     WatchKey key = dir.register(watcher, ENTRY_CREATE);
-
-    public InputHandler(BlockingQueue<Symbol> inputSymbolsQueue) throws IOException {
-        this.inputSymbols = inputSymbolsQueue;
-    }
 
     @Override
     public void run() {

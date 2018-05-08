@@ -11,7 +11,8 @@ import java.util.HashSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class Mealy implements CONS, Runnable{
+public class
+Mealy implements CONS, Runnable{
     // name of the mealy machine
     private String mealyName;
 
