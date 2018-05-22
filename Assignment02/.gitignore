@@ -25,3 +25,10 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+
+lib/
+
+gradle/
+
+out/
+
