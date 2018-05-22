@@ -10,3 +10,7 @@
 #Gradle
 /gradle/
 .gradle/
+gradlew.bat
+
+#gradlew
+gradlew.bat
