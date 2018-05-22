@@ -2,11 +2,11 @@
 .idea/
 
 #Out
-out/
+/out/
 
 #Lib
-lib/
+/lib/
 
 #Gradle
-gradle/
+/gradle/
 .gradle/
