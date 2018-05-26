@@ -1,4 +1,4 @@
-package fh.vv.assignment02.restful;
+package vv.assignment.restful;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,8 +74,7 @@ public class CustomerService {
      */
 
     // Finds customer by ID
-    @RequestMapping(value = "/customer/{id}", method= RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/customer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> findById(@PathVariable String id) {
         Optional<Customer> k = repo.findById(Long.parseLong(id));
         //  Returns Customer or empty customer
@@ -86,8 +84,7 @@ public class CustomerService {
     }
 
     // returns all customer
-    @RequestMapping(value = "/customers", method= RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/customers", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity< List<Customer>> findAll() {
         List<Customer> liste = new ArrayList<>();
         Iterable<Customer> iterator = repo.findAll();
@@ -119,18 +116,18 @@ public class CustomerService {
     }
 
     // Create new Customer
-    @PostMapping(value = "/kunden", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/customer", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void>  newCustomer(@RequestBody Customer customer, UriComponentsBuilder ucBuilder) {
         repo.save(customer);
         HttpHeaders headers = new HttpHeaders();
         // Sets a header with direct path to created Customer
-        headers.setLocation(ucBuilder.path("/kunden/{id}").buildAndExpand(customer.getId()).toUri());
+        headers.setLocation(ucBuilder.path("/customer/{id}").buildAndExpand(customer.getId()).toUri());
         // Sends header to client
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
     // Delete customer by ID
-    @DeleteMapping(value = "/kunden/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/customer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> loescheKunde(@PathVariable String id) {
         Optional<Customer> maybeOldCustomer = repo.findById(Long.parseLong(id));
         // If customer was found, delete it

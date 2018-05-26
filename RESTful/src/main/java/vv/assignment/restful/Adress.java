@@ -1,15 +1,17 @@
-package fh.vv.assignment02.restful;
+package vv.assignment.restful;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 
 // Specifies a composite primary key class that is mapped to multiple fields or properties of the entity
-@IdClass(Adress.class)
 @Entity
-public class Adress {
-    // Composite primary key, consisting of street, postalcode, place
+public class
+Adress {
+    @Id
+    @GeneratedValue
+    private Long id;
     String street;
     String postalcode;
     String place;

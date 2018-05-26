@@ -1,6 +1,7 @@
-package fh.vv.assignment02.restful;
+package vv.assignment.restful;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 
@@ -11,23 +12,17 @@ public class Customer {
     private Long id;
     String firstname;
     String lastname;
-    Date dateOfBirth;
+    LocalDate dateOfBirth;
 
     // Customer has an adress
     // optional false, because customer must have an adress TODO maybe not
     @OneToOne(optional=false)
-    // All three columns in table "Adresse" are part of the composite primary key
-    @JoinColumns({
-            @JoinColumn(name="ADDR_STREET", referencedColumnName="street"),
-            @JoinColumn(name="ADDR_POSTALCODE", referencedColumnName="postalcode"),
-            @JoinColumn(name="ADDR_PLACE", referencedColumnName="place")
-    })
     private Adress adress;
 
     // Customer can have many contracts
     // TODO "mappedBy" ??
     // TODO rename Kundenverträge to Verträge
-    @OneToMany(mappedBy = "Customer", targetEntity = Contract.class, fetch=FetchType.LAZY)
+    @OneToMany(targetEntity = Contract.class, fetch=FetchType.LAZY)
     private Collection<Contract> contracts;
 
     // Constructors
@@ -35,14 +30,14 @@ public class Customer {
         //default constructor
     }
 
-    public Customer(String firstname, String lastname, Date dateOfBirth, Adress adress) {
+    public Customer(String firstname, String lastname, LocalDate dateOfBirth, Adress adress) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.dateOfBirth = dateOfBirth;
         this.adress = adress;
     }
 
-    public Customer(String firstname, String lastname, Date dateOfBirth, Adress adress, Collection<Contract> contracts) {
+    public Customer(String firstname, String lastname, LocalDate dateOfBirth, Adress adress, Collection<Contract> contracts) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.dateOfBirth = dateOfBirth;
@@ -76,11 +71,11 @@ public class Customer {
         this.lastname = lastname;
     }
 
-    public Date getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
