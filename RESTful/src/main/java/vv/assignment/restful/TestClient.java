@@ -14,7 +14,7 @@ import java.util.*;
 
 
 public class TestClient {
-    public static final String REST_SERVICE_URI = "http://localhost:8443";
+    public static final String REST_SERVICE_URI = "http://localhost:8080";
 
     /**
     RestTemplate restTemplate = new RestTemplate();
@@ -46,7 +46,8 @@ public class TestClient {
 
     private static void getCustomer(){
         RestTemplate restTemplate = new RestTemplate();
-        Customer customer = restTemplate.getForObject(REST_SERVICE_URI+"/customer/1", Customer.class);
+        // Customer customer = restTemplate.getForObject(REST_SERVICE_URI+"/customer/1", Customer.class);
+        ResponseEntity<Customer> customer = restTemplate.getForEntity(REST_SERVICE_URI+"/customer/1", Customer.class);
         System.out.println(customer);
     }
 
@@ -81,7 +82,7 @@ public class TestClient {
     }
 
     public static void main(String args[]){
-        listAllCustomers();
+        //listAllCustomers();
         getCustomer();
         createCustomer();
         createCustomer();

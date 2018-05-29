@@ -89,6 +89,7 @@ public class CustomerService {
         List<Customer> liste = new ArrayList<>();
         Iterable<Customer> iterator = repo.findAll();
         iterator.forEach(liste::add);
+        System.out.println(liste);
         return new ResponseEntity<List<Customer>>(liste, HttpStatus.OK);
     }
 

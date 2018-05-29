@@ -70,6 +70,4 @@ public class ContractService {
             return new ResponseEntity<Contract> (new Contract(), HttpStatus.OK);
         }
     }
-
-
 }
