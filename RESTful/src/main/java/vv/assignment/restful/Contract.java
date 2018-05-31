@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,18 +14,18 @@ public class Contract {
     @GeneratedValue
     private Long id;
 
-    String kindOfContract; // TODO mögliche Werte: Haftpflicht, Rechtsschutz, KFZ -> Oder egal?
-    Double yearlyFee; // TODO double?
+    String kindOfContract;
+    Currency yearlyFee; // TODO double?
     private static final Set<String> ALLOWED_CONTRACTS = new HashSet<String>(Arrays.asList("Haftpflicht", "Rechtsschutz", "KFZ"));
 
     public Contract(){
         // default constructor
     }
 
-    public Contract(String kindOfContract, Double yearlyFee) throws IllegalArgumentException {
-        // TODO andere elegantere Lösungsmöglichkeit?
+    public Contract(String kindOfContract, Currency yearlyFee) throws IllegalArgumentException {
         if(!ALLOWED_CONTRACTS.contains((String) kindOfContract))
-            throw new IllegalArgumentException("Possible kinds of contracts: Haftpflicht, Rechtsschutz, KFZ");
+            throw new IllegalArgumentException
+                    ("Illegal kind of contract. Allowed values: Haftpflicht, Rechtsschutz, KFZ");
         this.kindOfContract = kindOfContract;
         this.yearlyFee = yearlyFee;
     }
@@ -45,11 +46,11 @@ public class Contract {
         this.kindOfContract = kindOfContract;
     }
 
-    public Double getYearlyFee() {
+    public Currency getYearlyFee() {
         return yearlyFee;
     }
 
-    public void setYearlyFee(Double yearlyFee) {
+    public void setYearlyFee(Currency yearlyFee) {
         this.yearlyFee = yearlyFee;
     }
 }

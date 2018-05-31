@@ -1,5 +1,6 @@
 package vv.assignment.restful.Test;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,43 +53,45 @@ public class TestCustomerService {
     }
     @Test
     public void createCustomer(){
-        /**
-         * New customer
-         */
-        Adress customersAdress = new Adress("Hochschulstraße 1", "83022", "Rosenheim");
-        Customer customer = new Customer("Günther", "Schmidt",
-                LocalDate.of(1984, 04, 20),customersAdress);
-        /**
-         * Request itself
-         */
-        HttpEntity<Customer> request = new HttpEntity<Customer>(customer, TestConstants.getBasicAuthHeaders());
-        /**
-         * Post new customer
-         */
-        ResponseEntity<Void> response0 =
-                restTemplate.postForEntity(REST_SERVICE_URI+"/customer", request, Void.class);
+        ResponseEntity<Void> postResponse = createGünther();
+        assertThat(postResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
 
-        assertThat(response0.getStatusCode(), equalTo(HttpStatus.CREATED));
-        /**
-         * Location to new user is saved in Headers
-         */
-        // TODO Fragen was tun?
-        HttpEntity<Void> request2 = new HttpEntity<Void>(TestConstants.getBasicAuthHeaders());
-        URI locationToCustomer = response0.getHeaders().getLocation();
-        ResponseEntity<Customer> response =
-                restTemplate.getForEntity(locationToCustomer.toString(), Customer.class, request2);
+        URI locationToCustomer = postResponse.getHeaders().getLocation();
+        ResponseEntity<Customer> getResponse = getCustomer(locationToCustomer);
 
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
-        assertThat(response.getBody().getFirstname(), equalTo(customer.getFirstname()));
-        assertThat(response.getBody().getLastname(), equalTo(customer.getLastname()));
-        assertThat(response.getBody().getDateOfBirth(), equalTo(customer.getDateOfBirth()));
-        assertThat(response.getBody().getAdress().getPlace(), equalTo(customer.getAdress().getPlace()));
-        assertThat(response.getBody().getAdress().getPostalcode(), equalTo(customer.getAdress().getPostalcode()));
-        assertThat(response.getBody().getAdress().getStreet(), equalTo(customer.getAdress().getStreet()));
+        assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(getResponse.getBody().getFirstname(), equalTo("Günther"));
+    }
+
+    @After
+    public static void deleteGünther(){
+        // TODO implement
     }
 
     @AfterAll
     public static void deleteTestingAccount(){
         restTemplate.delete(REST_SERVICE_URI+"/user/"+TestConstants.username);
+    }
+
+    private ResponseEntity<Void> createGünther(){
+        Adress customersAdress = new Adress("Hochschulstraße 1", "83022", "Rosenheim");
+        Customer customer = new Customer("Günther", "Schmidt",
+                LocalDate.of(1984, 04, 20),customersAdress);
+        /**
+         * Request-structure with BasicAuthorization-Header for posting new Customer
+          */
+        HttpEntity<Customer> postCustomer = new HttpEntity<Customer>(customer, TestConstants.getBasicAuthHeaders());
+
+        ResponseEntity<Void> postResponse =
+                restTemplate.postForEntity(REST_SERVICE_URI+"/customer", postCustomer, Void.class);
+
+        return postResponse;
+    }
+
+    private ResponseEntity<Customer> getCustomer(URI location){
+        HttpEntity<Void> getCustomerReq = new HttpEntity<Void>(TestConstants.getBasicAuthHeaders());
+        ResponseEntity<Customer> getResponse =
+                restTemplate.getForEntity(location.toString(), Customer.class, getCustomerReq);
+        return getResponse;
     }
 }
