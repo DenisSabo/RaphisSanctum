@@ -13,7 +13,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         // For testing reasons it is allowed to get all users without persmission
         http.authorizeRequests().antMatchers("/users").permitAll();
-        http.authorizeRequests().antMatchers("/user").permitAll();
+        http.authorizeRequests().antMatchers("/user", "/user/*").permitAll();
         // protect all resources
         http.authorizeRequests().anyRequest().authenticated();
         // protect with http basic authentication

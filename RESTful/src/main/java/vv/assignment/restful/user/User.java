@@ -2,9 +2,7 @@ package vv.assignment.restful.user;
 
 import org.springframework.context.annotation.Bean;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 
@@ -13,7 +11,7 @@ public class User {
     @GeneratedValue
     @Id
     private int id;
-    @NotNull
+    @NotNull @Column(unique=true)
     private String username;
     @NotNull
     private String password;

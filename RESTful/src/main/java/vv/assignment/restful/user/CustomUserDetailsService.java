@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import vv.assignment.restful.Customer;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Class that provides the possibility for authentication through database
@@ -29,25 +30,23 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);
 
-        if (user == null) {
+        if (!user.isPresent()) {
             throw new UsernameNotFoundException("User not found");
         }
-        List<GrantedAuthority> auth = AuthorityUtils.commaSeparatedStringToAuthorityList(user.getRole());
+        List<GrantedAuthority> auth = AuthorityUtils.commaSeparatedStringToAuthorityList(user.get().getRole());
 
-        String password = user.getPassword();
+        String password = user.get().getPassword();
 
         //WebSecurityConfigurerAdapter.setUserId(user.getId());
 
         return new org.springframework.security.core.userdetails.User(username, password, auth);
     }
 
-    public void saveUser(User user){
+    public void saveUser(User user) throws org.springframework.dao.DataIntegrityViolationException{
         userRepository.save(user);
     }
 
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
-    }
+    public List<User> getAllUsers(){ return userRepository.findAll(); }
 }

@@ -16,6 +16,10 @@ Adress {
     String postalcode;
     String place;
 
+    public Adress(){
+        // default
+    }
+
     // Only one constructor since all three fields/variables are part of the composite primary key
     public Adress(String street, String postalcode, String place) {
         this.street = street;

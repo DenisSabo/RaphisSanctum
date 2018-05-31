@@ -15,13 +15,11 @@ public class Customer {
     LocalDate dateOfBirth;
 
     // Customer has an adress
-    // optional false, because customer must have an adress TODO maybe not
-    @OneToOne(optional=false)
+    // save to database, when saving parent
+    @OneToOne(cascade = {CascadeType.ALL})
     private Adress adress;
 
     // Customer can have many contracts
-    // TODO "mappedBy" ??
-    // TODO rename Kundenverträge to Verträge
     @OneToMany(targetEntity = Contract.class, fetch=FetchType.LAZY)
     private Collection<Contract> contracts;
 

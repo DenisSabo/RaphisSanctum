@@ -38,8 +38,7 @@ public class ContractService {
         }
         else{
             // Customer was not found -> return empty customer
-            // TODO Teste: new Contract(); -> Wird der ID-Zähler hochgezählt? Wenn ja, dann verschwendet
-            return new ResponseEntity<Contract> (new Contract(), HttpStatus.OK);
+            return new ResponseEntity<Contract> (new Contract(), HttpStatus.NOT_MODIFIED);
         }
     }
 

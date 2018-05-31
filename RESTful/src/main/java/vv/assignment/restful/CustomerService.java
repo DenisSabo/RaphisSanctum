@@ -111,7 +111,6 @@ public class CustomerService {
         }
         else{
             // Customer have not been found -> return empty customer
-            // TODO Waste ID-Counter??
             return new ResponseEntity<Customer> (new Customer(), HttpStatus.OK);
         }
     }
@@ -119,7 +118,7 @@ public class CustomerService {
     // Create new Customer
     @PostMapping(value = "/customer", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void>  newCustomer(@RequestBody Customer customer, UriComponentsBuilder ucBuilder) {
-        repo.save(customer);
+        Long savedCustomerId = repo.save(customer).getId();
         HttpHeaders headers = new HttpHeaders();
         // Sets a header with direct path to created Customer
         headers.setLocation(ucBuilder.path("/customer/{id}").buildAndExpand(customer.getId()).toUri());
