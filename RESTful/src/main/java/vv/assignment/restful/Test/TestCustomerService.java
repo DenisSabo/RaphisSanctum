@@ -16,13 +16,19 @@ import vv.assignment.restful.user.User;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static vv.assignment.restful.Test.TestConstants.*;
 
 import java.lang.invoke.MethodType;
 import java.net.URI;
 import java.time.LocalDate;
-import static vv.assignment.restful.Test.TestConstants.REST_SERVICE_URI;
 
 public class TestCustomerService {
+
+    /**
+     * TODO am besten wäre es, wenn alle RestTemplate-Anfragen direkt mit dem Authorization-Header für
+     * TODO BasicAuth ausgestatted wären
+     */
+
 
     static RestTemplate restTemplate = new RestTemplate();
 
@@ -30,47 +36,47 @@ public class TestCustomerService {
      * Creates
      */
     @BeforeAll
-    public static void testingAccountExists(){
-        User testUser = new User("TESTRUNNER", "Pass123", null);
+    public static void testingAccountExists() throws ServerNotTunedOnRequestException {
+
         /**
-         * Creates User which is needed for authentication
+         * Tries to create a User, that can be used for authentication by the test cases
          */
-        ResponseEntity<User> response =
-                restTemplate.getForEntity(REST_SERVICE_URI+"/user/"+ testUser.getUsername(), User.class);
-        if(response.getStatusCode().equals(HttpStatus.NO_CONTENT)){
-            ResponseEntity<User> anotherResponse =
-                    restTemplate.postForEntity(REST_SERVICE_URI+"/user", testUser, User.class);
-            if(anotherResponse.getStatusCode().equals(HttpStatus.CREATED)){
-                // Everything is fine
-            }
-            else{
-                // TODO do not execute tests
-            }
-        }
-        else{
-            // Do nothing
-        }
-    }
-    @Test
-    public void createCustomer(){
-        ResponseEntity<Void> postResponse = createGünther();
-        assertThat(postResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
-
-        URI locationToCustomer = postResponse.getHeaders().getLocation();
-        ResponseEntity<Customer> getResponse = getCustomer(locationToCustomer);
-
-        assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.OK));
-        assertThat(getResponse.getBody().getFirstname(), equalTo("Günther"));
-    }
-
-    @After
-    public static void deleteGünther(){
-        // TODO implement
+        createTestUser();
     }
 
     @AfterAll
-    public static void deleteTestingAccount(){
-        restTemplate.delete(REST_SERVICE_URI+"/user/"+TestConstants.username);
+    public static void cleanUp(){
+        deleteTestUser();
+    }
+
+    /**
+     * Test if it is possible to create a customer
+     */
+    @Test
+    public void createAndDeleteCustomer(){
+        /**
+         * Creates a predefined customer
+         */
+        ResponseEntity<Void> postResponse = createGünther();
+        assertThat(postResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
+        /**
+         * post response normally contains URI to created User
+         */
+        URI locationToCustomer = postResponse.getHeaders().getLocation();
+        ResponseEntity<Customer> getResponse = getCustomer(locationToCustomer);
+        /**
+         * Assertion that user was found
+         */
+        assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(getResponse.getBody().getFirstname(), equalTo("Günther"));
+        /**
+         * Now delete user Günther by Customer-Entity
+         */
+        deleteGünther(getResponse.getBody());
+        // Now try to find customer like before
+        getResponse = getCustomer(locationToCustomer);
+        // Assertion is that user wont be found
+        assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
     }
 
     private ResponseEntity<Void> createGünther(){
@@ -84,14 +90,21 @@ public class TestCustomerService {
 
         ResponseEntity<Void> postResponse =
                 restTemplate.postForEntity(REST_SERVICE_URI+"/customer", postCustomer, Void.class);
-
+        /**
+         * Post response will contain Customer-Location if created successfully
+         */
         return postResponse;
     }
 
+    private void deleteGünther(Customer customer){
+                restTemplate.delete(REST_SERVICE_URI+"/customer",
+                        Customer.class , getBasicAuthHeaders());
+    }
+
     private ResponseEntity<Customer> getCustomer(URI location){
-        HttpEntity<Void> getCustomerReq = new HttpEntity<Void>(TestConstants.getBasicAuthHeaders());
-        ResponseEntity<Customer> getResponse =
-                restTemplate.getForEntity(location.toString(), Customer.class, getCustomerReq);
-        return getResponse;
+        HttpEntity<Void> authedEntity = new HttpEntity<Void>(TestConstants.getBasicAuthHeaders());
+        ResponseEntity<Customer> response =
+                restTemplate.getForEntity(location.toString(), Customer.class, authedEntity);
+        return response;
     }
 }

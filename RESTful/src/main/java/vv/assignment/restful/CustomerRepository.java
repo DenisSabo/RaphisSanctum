@@ -10,9 +10,5 @@ import java.util.Date;
 // CrudRepository:
 
 public interface CustomerRepository extends CrudRepository<Customer, Long> {
-    // All necessary "getters" for Customers
-    Iterable<Customer> findCustomersByLastname(String lastname);
-    Iterable<Customer> findCustomersByDateOfBirth(Date dateOfBirth);
-    //Iterable<Customer> findCustomerByFirstnameAndLastnameAndDateOfBirth(Date dateOfBirth);
 }
 

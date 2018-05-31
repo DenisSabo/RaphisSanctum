@@ -76,11 +76,14 @@ public class CustomerService {
     // Finds customer by ID
     @GetMapping(value = "/customer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> findById(@PathVariable String id) {
-        Optional<Customer> k = repo.findById(Long.parseLong(id));
+        Optional<Customer> c = repo.findById(Long.parseLong(id));
         //  Returns Customer or empty customer
-        // TODO new Customer() good solution?
-        // TODO what happens with ID-Counter, does new Customer() waste "one count"?
-        return new ResponseEntity<Customer> (k.orElse(new Customer()), HttpStatus.OK);
+        if(c.isPresent()){
+            return new ResponseEntity<Customer>(c.get(), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<Customer>(HttpStatus.NO_CONTENT);
+        }
     }
 
     // returns all customer
@@ -126,20 +129,18 @@ public class CustomerService {
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
-    // Delete customer by ID
+    // Delete Customer by id
     @DeleteMapping(value = "/customer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Customer> loescheKunde(@PathVariable String id) {
+    public ResponseEntity<Customer> deleteCustomer(@PathVariable String id) {
         Optional<Customer> maybeOldCustomer = repo.findById(Long.parseLong(id));
-        // If customer was found, delete it
+        // If Contract was found, delete it
         if(maybeOldCustomer.isPresent()){
             Customer oldCustomer = maybeOldCustomer.get();
             repo.delete(oldCustomer);
             return new ResponseEntity<Customer> (oldCustomer, HttpStatus.OK);
         }
         else{
-            // TODO maybe better solution
-            // Customer was not found -> return empty customer
-            return new ResponseEntity<Customer> (new Customer(), HttpStatus.OK);
+            return new ResponseEntity<Customer> (HttpStatus.NO_CONTENT);
         }
     }
 }
