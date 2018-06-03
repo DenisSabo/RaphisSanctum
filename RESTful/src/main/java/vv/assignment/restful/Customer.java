@@ -1,5 +1,7 @@
 package vv.assignment.restful;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Collection;
@@ -13,6 +15,7 @@ public class Customer {
     String firstname;
     String lastname;
     LocalDate dateOfBirth;
+    int versionnumber = 0;
 
     // Customer has an adress
     // save to database, when saving parent
@@ -20,7 +23,7 @@ public class Customer {
     private Adress adress;
 
     // Customer can have many contracts
-    @OneToMany(targetEntity = Contract.class, fetch=FetchType.LAZY)
+    @OneToMany(targetEntity = Contract.class, fetch=FetchType.EAGER)
     private Collection<Contract> contracts;
 
     // Constructors
@@ -33,6 +36,7 @@ public class Customer {
         this.lastname = lastname;
         this.dateOfBirth = dateOfBirth;
         this.adress = adress;
+        this.versionnumber = 1;
     }
 
     public Customer(String firstname, String lastname, LocalDate dateOfBirth, Adress adress, Collection<Contract> contracts) {
@@ -41,6 +45,7 @@ public class Customer {
         this.dateOfBirth = dateOfBirth;
         this.adress = adress;
         this.contracts = contracts;
+        this.versionnumber = 1;
     }
 
     // Getter and setter
@@ -91,6 +96,10 @@ public class Customer {
 
     public void setContracts(Collection contracts) {
         this.contracts = contracts;
+    }
+
+    public void incrementVersion(){
+        versionnumber++;
     }
 
     // Equals, HashCode, and toString()

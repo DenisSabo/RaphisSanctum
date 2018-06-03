@@ -1,8 +1,8 @@
 package vv.assignment.restful;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import javax.persistence.*;
 import java.util.Arrays;
 import java.util.Currency;
 import java.util.HashSet;

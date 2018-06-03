@@ -6,6 +6,7 @@ import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.user.User;
 
@@ -40,6 +41,11 @@ public interface TestConstants {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Basic " + base64Credentials);
         return headers;
+    }
+
+    public static RestTemplate getAuthenticatedRestTemplate(){
+        restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
+        return restTemplate;
     }
 
     /**

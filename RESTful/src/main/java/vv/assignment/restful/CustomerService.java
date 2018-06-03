@@ -109,6 +109,8 @@ public class CustomerService {
             oldCustomer.setFirstname(newCustomer.getFirstname());
             oldCustomer.setLastname(newCustomer.getLastname());
             oldCustomer.setDateOfBirth(newCustomer.getDateOfBirth());
+            // Versionnumber of customer will be incremented
+            oldCustomer.incrementVersion();
             repo.save(oldCustomer);
             return new ResponseEntity<Customer> (oldCustomer, HttpStatus.OK);
         }
@@ -133,14 +135,15 @@ public class CustomerService {
     @DeleteMapping(value = "/customer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> deleteCustomer(@PathVariable String id) {
         Optional<Customer> maybeOldCustomer = repo.findById(Long.parseLong(id));
-        // If Contract was found, delete it
+        // If Customer was found delete it, else return NOT_FOUND status
         if(maybeOldCustomer.isPresent()){
             Customer oldCustomer = maybeOldCustomer.get();
             repo.delete(oldCustomer);
             return new ResponseEntity<Customer> (oldCustomer, HttpStatus.OK);
         }
         else{
-            return new ResponseEntity<Customer> (HttpStatus.NO_CONTENT);
+            ResponseEntity<Customer> errorResponse = new ResponseEntity<Customer>(, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<Customer> (HttpStatus.NOT_FOUND);
         }
     }
 }
