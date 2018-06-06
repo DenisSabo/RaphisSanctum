@@ -3,10 +3,9 @@ package vv.assignment.restful;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
-import java.util.Arrays;
-import java.util.Currency;
-import java.util.HashSet;
-import java.util.Set;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.util.*;
 
 @Entity
 public class Contract {
@@ -15,17 +14,25 @@ public class Contract {
     private Long id;
 
     String kindOfContract;
-    Currency yearlyFee; // TODO double?
-    private static final Set<String> ALLOWED_CONTRACTS = new HashSet<String>(Arrays.asList("Haftpflicht", "Rechtsschutz", "KFZ"));
+    BigDecimal yearlyFee;
+
+    // Many contracts can be used by one customer
+    @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.PERSIST)
+    @JoinColumn(name="CUSTOMER_ID") // Foreign key
+    Customer customer;
+
+    private static final Set<String> ALLOWED_CONTRACTS =
+            new HashSet<String>(Arrays.asList("Krankenversicherung", "Haftpflicht", "Rechtsschutz", "KFZ"));
 
     public Contract(){
         // default constructor
     }
 
-    public Contract(String kindOfContract, Currency yearlyFee) throws IllegalArgumentException {
+    // TODO Gute Lösung im Konstruktor??
+    public Contract(String kindOfContract, BigDecimal yearlyFee) throws IllegalArgumentException {
         if(!ALLOWED_CONTRACTS.contains((String) kindOfContract))
             throw new IllegalArgumentException
-                    ("Illegal kind of contract. Allowed values: Haftpflicht, Rechtsschutz, KFZ");
+                    ("Illegal kind of contract. Allowed values: Krankenversicherung, Haftpflicht, Rechtsschutz, KFZ");
         this.kindOfContract = kindOfContract;
         this.yearlyFee = yearlyFee;
     }
@@ -46,11 +53,41 @@ public class Contract {
         this.kindOfContract = kindOfContract;
     }
 
-    public Currency getYearlyFee() {
+    public BigDecimal getYearlyFee() {
         return yearlyFee;
     }
 
-    public void setYearlyFee(Currency yearlyFee) {
+    public void setYearlyFee(BigDecimal yearlyFee) {
         this.yearlyFee = yearlyFee;
     }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    /**
+     * Do not compare Id's, because only content is relevant
+     * @param o
+     * @return
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Contract contract = (Contract) o;
+
+        return kindOfContract.equals(contract.kindOfContract) && yearlyFee.equals(contract.yearlyFee);
+    }
+
+    /**
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+    */
 }

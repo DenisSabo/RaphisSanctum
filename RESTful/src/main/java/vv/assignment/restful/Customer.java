@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 public class Customer {
@@ -15,16 +16,32 @@ public class Customer {
     String firstname;
     String lastname;
     LocalDate dateOfBirth;
-    int versionnumber = 0;
 
     // Customer has an adress
-    // save to database, when saving parent
-    @OneToOne(cascade = {CascadeType.ALL})
+    @OneToOne(
+            cascade = {CascadeType.ALL}
+            )
     private Adress adress;
 
     // Customer can have many contracts
-    @OneToMany(targetEntity = Contract.class, fetch=FetchType.EAGER)
-    private Collection<Contract> contracts;
+    @OneToMany(targetEntity = Contract.class, fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Contract> contracts;
+
+    /**
+     *  bidirectional associations should always provide
+     *  methods, which are used to synchronize both sides
+     *  of the relationship
+     *  Source: https://vladmihalcea.com/the-best-way-to-map-a-onetomany-association-with-jpa-and-hibernate/
+     */
+    public void addContract(Contract contract){
+        contracts.add(contract);
+        contract.setCustomer(this);
+    }
+
+    public void removeContract(Contract contract){
+        contracts.remove(contract);
+        contract.setCustomer(null);
+    }
 
     // Constructors
     public Customer(){
@@ -36,19 +53,17 @@ public class Customer {
         this.lastname = lastname;
         this.dateOfBirth = dateOfBirth;
         this.adress = adress;
-        this.versionnumber = 1;
     }
 
-    public Customer(String firstname, String lastname, LocalDate dateOfBirth, Adress adress, Collection<Contract> contracts) {
+    public Customer(String firstname, String lastname, LocalDate dateOfBirth, Adress adress, List<Contract> contracts) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.dateOfBirth = dateOfBirth;
         this.adress = adress;
         this.contracts = contracts;
-        this.versionnumber = 1;
     }
 
-    // Getter and setter
+    // Basic getter and setter
     public Long getId() {
 
         return id;
@@ -90,17 +105,14 @@ public class Customer {
         this.adress = adress;
     }
 
-    public Collection getContracts() {
+    public List<Contract> getContracts() {
         return contracts;
     }
 
-    public void setContracts(Collection contracts) {
+    public void setContracts(List<Contract> contracts) {
         this.contracts = contracts;
     }
 
-    public void incrementVersion(){
-        versionnumber++;
-    }
 
     // Equals, HashCode, and toString()
     @Override

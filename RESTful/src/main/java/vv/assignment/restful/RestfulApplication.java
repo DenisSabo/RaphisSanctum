@@ -17,6 +17,11 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EntityScan("vv.assignment.restful")
 @EnableWebSecurity
 @EnableWebMvc
+// TODO Endpoint: GET: /customer/{id}/contracts (wenn möglich), sonst /customer/contracts?customer_id
+// TODO TestCustomerContractService fertig
+// TODO Refactoring der redundanten Funktionen in den Test-Klassen
+// TODO Verschieben der Test-Klassen in den vorgesehenen Ordner
+// TODO Aufgabe 4 weiter machen
 public class RestfulApplication {
 
 	/**

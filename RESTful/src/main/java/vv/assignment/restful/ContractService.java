@@ -42,6 +42,18 @@ public class ContractService {
         }
     }
 
+    @GetMapping(value="/contract/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Contract> getContract(@PathVariable String id){
+        Optional<Contract> contract = repo.findById(Long.parseLong(id));
+        //  Returns Customer or empty customer
+        if(contract.isPresent()){
+            return new ResponseEntity<Contract>(contract.get(), HttpStatus.OK);
+        }
+        else{
+            return new ResponseEntity<Contract>(HttpStatus.NO_CONTENT);
+        }
+    }
+
     // Create new Customer
     @PostMapping(value = "/contract", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void>  newContract(@RequestBody Contract contract, UriComponentsBuilder ucBuilder) {

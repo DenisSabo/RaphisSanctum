@@ -52,7 +52,7 @@ public interface TestConstants {
      * Test-User may not exists, so we a function that creates one, if none exists
      */
     public static void createTestUser() throws ServerNotTunedOnRequestException {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate noAuthTemplate = new RestTemplate();
         /**
          * User that will be used for authentication during requests to secured endpoints
          */
@@ -61,12 +61,13 @@ public interface TestConstants {
          * Check if user exists already
          */
         ResponseEntity<User> mayGotUserRes =
-                restTemplate.getForEntity(REST_SERVICE_URI+"/user/"+ testUser.getUsername(), User.class);
+                noAuthTemplate.getForEntity(REST_SERVICE_URI+"/user/"+ testUser.getUsername(), User.class);
 
         // If no user was found, make post request so server can save user
         if(mayGotUserRes.getStatusCode().equals(HttpStatus.NO_CONTENT)){
+
             ResponseEntity<User> postUserRes =
-                    restTemplate.postForEntity(REST_SERVICE_URI+"/user", testUser, User.class);
+                    noAuthTemplate.postForEntity(REST_SERVICE_URI+"/user", testUser, User.class);
 
             if(postUserRes.getStatusCode().equals(HttpStatus.CREATED)){
                 // Everything is fine
@@ -82,6 +83,7 @@ public interface TestConstants {
     }
 
     public static void deleteTestUser(){
-        restTemplate.delete(REST_SERVICE_URI+"/user/"+TestConstants.username);
+        RestTemplate noAuthTemplate = new RestTemplate();
+        noAuthTemplate.delete(REST_SERVICE_URI+"/user/"+TestConstants.username);
     }
 }

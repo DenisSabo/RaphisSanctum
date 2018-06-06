@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.Adress;
+import vv.assignment.restful.Contract;
 import vv.assignment.restful.Customer;
 import vv.assignment.restful.user.User;
 
@@ -22,8 +23,12 @@ import static org.junit.Assert.assertThat;
 import static vv.assignment.restful.Test.TestConstants.*;
 
 import java.lang.invoke.MethodType;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Currency;
+import java.util.HashSet;
 
 public class TestCustomerService {
 
@@ -35,42 +40,12 @@ public class TestCustomerService {
      */
     @BeforeAll
     public static void createTestUser() throws ServerNotTunedOnRequestException {
-        createTestUser();
+        TestConstants.createTestUser();
     }
 
     @AfterAll
     public static void cleanUp(){
         deleteTestUser();
-    }
-
-    /**
-     * Test if it is possible to create and delete a customer
-     */
-    @Test
-    public void createAndDeleteCustomer(){
-        /**
-         * Creates a predefined customer
-         */
-        ResponseEntity<Void> postResponse = createGünther();
-        assertThat(postResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
-        /**
-         * post response normally contains URI to created User
-         */
-        URI locationToCustomer = postResponse.getHeaders().getLocation();
-        ResponseEntity<Customer> getResponse = getCustomer(locationToCustomer);
-        /**
-         * Assertion that user was found
-         */
-        assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.OK));
-        assertThat(getResponse.getBody().getFirstname(), equalTo("Günther"));
-        /**
-         * Now delete user Günther by Customer-Entity
-         */
-        deleteGünther(getResponse.getBody().getId());
-        // Now try to find customer like before
-        getResponse = getCustomer(locationToCustomer);
-        // Assertion is that user wont be found
-        assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
     }
 
     @Test
@@ -120,43 +95,44 @@ public class TestCustomerService {
         /**
          * Delete customers
          */
-
-    }
-
-
-
-
-    private ResponseEntity<Void> createGünther(){
-        Adress customersAdress = new Adress("Hochschulstraße 1", "83022", "Rosenheim");
-        Customer customer = new Customer("Günther", "Schmidt",
-                LocalDate.of(1984, 04, 20), customersAdress);
-
-        ResponseEntity<Void> postResponse =
-                restTemplate.postForEntity(REST_SERVICE_URI+"/customer", customer, Void.class);
+        deleteCustomer(customerGerhard.getBody().getId());
+        deleteCustomer(customerAnna.getBody().getId());
+        deleteCustomer(customerTuring.getBody().getId());
         /**
-         * Post response will contain Customer-Location if created successfully
+         * Try to find Customers
          */
-        return postResponse;
+        ResponseEntity<Customer> normallyGerhardNotFound = getCustomer(locationToGerhard);
+        assertThat(normallyGerhardNotFound.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
+
+        ResponseEntity<Customer> normallyAnnaNotFound = getCustomer(locationToGerhard);
+        assertThat(normallyAnnaNotFound.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
+
+        ResponseEntity<Customer> normallyTuringNotFound = getCustomer(locationToGerhard);
+        assertThat(normallyTuringNotFound.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
     }
 
-    private void deleteGünther(Long id){
-        restTemplate.delete(REST_SERVICE_URI+"/customer/"+id,
-                Customer.class);
-    }
-
+    /**
+     * Functions for easier interaction with API
+     * @param customer
+     * @return
+     */
     private ResponseEntity<Void> createCustomer(Customer customer){
         ResponseEntity<Void> postResponse =
                 restTemplate.postForEntity(REST_SERVICE_URI+"/customer", customer, Void.class);
         return postResponse;
     }
 
-    private void deleteCustomer(Long id){
-        restTemplate.delete(REST_SERVICE_URI+"/customer/"+id, Customer.class);
-    }
-
     private ResponseEntity<Customer> getCustomer(URI location){
         ResponseEntity<Customer> response =
                 restTemplate.getForEntity(location.toString(), Customer.class);
         return response;
+    }
+
+    private void updateCustomer(String id, Customer newCustomer){
+        restTemplate.put(REST_SERVICE_URI+"/customer/"+id, newCustomer, Void.class);
+    }
+
+    private void deleteCustomer(Long id){
+        restTemplate.delete(REST_SERVICE_URI+"/customer/"+id, Customer.class);
     }
 }

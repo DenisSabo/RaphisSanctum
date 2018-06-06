@@ -1,9 +1,6 @@
 package vv.assignment.restful;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
+import javax.persistence.*;
 
 // Specifies a composite primary key class that is mapped to multiple fields or properties of the entity
 @Entity
