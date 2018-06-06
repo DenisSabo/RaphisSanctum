@@ -1,21 +1,15 @@
-package vv.assignment.restful.Test;
+package vv.assignment.restful.Proxy;
 
 import org.apache.tomcat.util.codec.binary.Base64;
-import org.springframework.boot.devtools.remote.client.HttpHeaderInterceptor;
-import org.springframework.http.*;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.web.client.RestTemplate;
+import vv.assignment.restful.Test.ServerNotTunedOnRequestException;
 import vv.assignment.restful.user.User;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-public interface TestConstants {
-
+public interface LocalCallConstants {
     /**
      * URL to server
      */
@@ -84,6 +78,6 @@ public interface TestConstants {
 
     public static void deleteTestUser(){
         RestTemplate noAuthTemplate = new RestTemplate();
-        noAuthTemplate.delete(REST_SERVICE_URI+"/user/"+TestConstants.username);
+        noAuthTemplate.delete(REST_SERVICE_URI+"/user/"+ username);
     }
 }
