@@ -1,7 +1,6 @@
 package vv.assignment.restful.Proxy;
 
 import org.springframework.http.ResponseEntity;
-import vv.assignment.restful.Customer;
 
 import java.net.URI;
 

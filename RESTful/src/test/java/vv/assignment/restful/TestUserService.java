@@ -1,6 +1,5 @@
-package vv.assignment.restful.Test;
+package vv.assignment.restful;
 
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +10,6 @@ import vv.assignment.restful.user.User;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
 
 public class TestUserService {
 

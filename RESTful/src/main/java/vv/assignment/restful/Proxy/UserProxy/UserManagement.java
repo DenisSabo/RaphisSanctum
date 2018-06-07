@@ -2,7 +2,6 @@ package vv.assignment.restful.Proxy.UserProxy;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import vv.assignment.restful.Customer;
 import vv.assignment.restful.Proxy.CRUDable;
 import vv.assignment.restful.user.User;
 

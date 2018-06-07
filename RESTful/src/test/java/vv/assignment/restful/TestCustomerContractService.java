@@ -1,23 +1,13 @@
-package vv.assignment.restful.Test;
+package vv.assignment.restful;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.RequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import vv.assignment.restful.Adress;
-import vv.assignment.restful.Contract;
-import vv.assignment.restful.ContractService;
-import vv.assignment.restful.Customer;
 import vv.assignment.restful.Proxy.ContractProxy.ContractManagement;
 import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
 import vv.assignment.restful.Proxy.LocalCallConstants;
@@ -30,8 +20,6 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.htmlunit.MockMvcWebClientBuilder.webAppContextSetup;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
 
 

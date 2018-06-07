@@ -1,4 +1,4 @@
-package vv.assignment.restful.Test;
+package vv.assignment.restful;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -6,18 +6,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import vv.assignment.restful.Contract;
 import vv.assignment.restful.Proxy.LocalCallConstants;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 import java.net.URI;
 
-import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
-import static vv.assignment.restful.Proxy.LocalCallConstants.deleteTestUser;
-import static vv.assignment.restful.Proxy.LocalCallConstants.getAuthenticatedRestTemplate;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static vv.assignment.restful.Proxy.LocalCallConstants.*;
 
 public class TestContractsService {
     // This restTemplate uses a predefined User for basic authentication

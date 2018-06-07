@@ -1,12 +1,10 @@
 package vv.assignment.restful;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
-import org.springframework.util.MultiValueMap;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class accepts a generic so any entity can be returned.

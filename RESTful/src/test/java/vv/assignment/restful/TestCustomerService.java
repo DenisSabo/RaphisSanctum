@@ -1,22 +1,19 @@
-package vv.assignment.restful.Test;
+package vv.assignment.restful;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.servlet.MockMvc;
-import vv.assignment.restful.Adress;
-import vv.assignment.restful.Customer;
-import vv.assignment.restful.Proxy.LocalCallConstants;
 import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
+import vv.assignment.restful.Proxy.LocalCallConstants;
+
+import java.net.URI;
+import java.time.LocalDate;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static vv.assignment.restful.Proxy.LocalCallConstants.deleteTestUser;
-
-import java.net.URI;
-import java.time.LocalDate;
 
 public class TestCustomerService {
     CustomerManagement proxy = new CustomerManagement();
