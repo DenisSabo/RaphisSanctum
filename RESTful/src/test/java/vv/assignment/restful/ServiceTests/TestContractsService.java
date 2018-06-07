@@ -1,4 +1,4 @@
-package vv.assignment.restful;
+package vv.assignment.restful.ServiceTests;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import vv.assignment.restful.Contract.Contract;
+import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.Proxy.LocalCallConstants;
 
 import java.math.BigDecimal;

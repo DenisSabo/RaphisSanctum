@@ -1,10 +1,13 @@
-package vv.assignment.restful;
+package vv.assignment.restful.ServiceTests;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import vv.assignment.restful.Customer.Adress;
+import vv.assignment.restful.Customer.Customer;
+import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
 import vv.assignment.restful.Proxy.LocalCallConstants;
 

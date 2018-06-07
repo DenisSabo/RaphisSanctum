@@ -1,4 +1,4 @@
-package vv.assignment.restful;
+package vv.assignment.restful.Contract;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;

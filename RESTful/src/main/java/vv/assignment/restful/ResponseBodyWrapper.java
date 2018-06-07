@@ -12,6 +12,7 @@ import java.util.Set;
  *     so additional information will be contained in the body
  * @param <T> entity that will be returned in Body
  */
+// TODO funktioniert nicht wirklich
 public class ResponseBodyWrapper<T>{
     /**
      * Entity that will be wrapped

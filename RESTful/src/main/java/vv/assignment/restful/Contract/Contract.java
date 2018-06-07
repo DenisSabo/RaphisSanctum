@@ -1,4 +1,6 @@
-package vv.assignment.restful;
+package vv.assignment.restful.Contract;
+
+import vv.assignment.restful.Customer.Customer;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -18,7 +20,7 @@ public class Contract {
     // Many contracts can be used by one customer
     @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.PERSIST)
     @JoinColumn(name="CUSTOMER_ID") // Foreign key
-    Customer customer;
+            Customer customer;
 
     private static final Set<String> ALLOWED_CONTRACTS =
             new HashSet<String>(Arrays.asList("Krankenversicherung", "Haftpflicht", "Rechtsschutz", "KFZ"));

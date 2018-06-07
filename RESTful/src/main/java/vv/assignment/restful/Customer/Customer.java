@@ -1,4 +1,6 @@
-package vv.assignment.restful;
+package vv.assignment.restful.Customer;
+
+import vv.assignment.restful.Contract.Contract;
 
 import javax.persistence.*;
 import java.time.LocalDate;

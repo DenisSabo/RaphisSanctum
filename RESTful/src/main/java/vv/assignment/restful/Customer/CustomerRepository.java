@@ -1,8 +1,6 @@
-package vv.assignment.restful;
+package vv.assignment.restful.Customer;
 
 import org.springframework.data.repository.CrudRepository;
-
-import java.util.Date;
 
 /**
  * Created by be on 11.05.2017.

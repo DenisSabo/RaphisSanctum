@@ -1,4 +1,4 @@
-package vv.assignment.restful;
+package vv.assignment.restful.ServiceTests;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package vv.assignment.restful;
+package vv.assignment.restful.Customer;
 
 import javax.persistence.*;
 
