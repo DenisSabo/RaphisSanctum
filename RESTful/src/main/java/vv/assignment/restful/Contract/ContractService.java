@@ -2,13 +2,18 @@ package vv.assignment.restful.Contract;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.io.IOException;
 import java.util.Optional;
 
 @ComponentScan("ContractRepository")
@@ -67,28 +72,33 @@ public class ContractService {
 
     // Delete Contract by ID
     @DeleteMapping(value = "/contract/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Contract> deleteContract(@PathVariable String id) {
+    // TODO Generic ist jetzt eine Wildcard
+    public ResponseEntity<?> deleteContract(@PathVariable String id){
         Optional<Contract> maybeOldContract = repo.findById(Long.parseLong(id));
         // If Contract was found, try to delete it
         if(maybeOldContract.isPresent()){
             Contract oldContract = maybeOldContract.get();
-            try{
+            // Throws DataIntegrityException sometimes, that will be catched by the handler
+            try {
                 repo.delete(oldContract);
             }
-            catch(org.springframework.dao.DataIntegrityViolationException ex){
-                /**
-                 * Sometimes it is not possible to delete a contract
-                 * because it is referenced by a customer.
-                 */
-                System.out.println(ex);
-                return new ResponseEntity<Contract>(HttpStatus.CONFLICT);
+            catch(DataIntegrityViolationException ex){
+                // TODO funktioniert eigentlich nicht
+                return handleDataIntegrityViolationErrorResponse(ex);
             }
             return new ResponseEntity<Contract> (oldContract, HttpStatus.OK);
         }
         else{
             // Contract was not found -> return empty Contract
-            // TODO maybe wastes ID-Counter
             return new ResponseEntity<Contract> (new Contract(), HttpStatus.OK);
         }
+    }
+
+    @ExceptionHandler({ DataIntegrityViolationException.class})
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public static ResponseEntity<String> handleDataIntegrityViolationErrorResponse(DataIntegrityViolationException exception) {
+        return new ResponseEntity<String>("You can not delete this contract, because" +
+                "it is still used by a customer", HttpStatus.CONFLICT);
     }
 }
