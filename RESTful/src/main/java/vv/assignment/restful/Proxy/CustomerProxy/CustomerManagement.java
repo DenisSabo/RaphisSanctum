@@ -4,22 +4,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.Customer;
 import vv.assignment.restful.Proxy.CRUDable;
-import vv.assignment.restful.Test.TestConstants;
 
 import java.net.URI;
 
-import static vv.assignment.restful.Test.TestConstants.REST_SERVICE_URI;
+import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
+import static vv.assignment.restful.Proxy.LocalCallConstants.getAuthenticatedRestTemplate;
 
-public class RealCustomerManagement implements CRUDable<Customer> {
+public class CustomerManagement implements CRUDable<Customer> {
 
-    static RestTemplate restTemplate = TestConstants.getAuthenticatedRestTemplate();
+    static RestTemplate restTemplate = getAuthenticatedRestTemplate();
 
-    public RealCustomerManagement(){
+    public CustomerManagement(){
         // default constructor
     }
 
     @Override
-    public void listAllCustomer() {
+    public void listAllEntities() {
 
     }
 

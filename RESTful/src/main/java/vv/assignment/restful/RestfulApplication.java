@@ -21,7 +21,9 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 // TODO TestCustomerContractService fertig
 // TODO Refactoring der redundanten Funktionen in den Test-Klassen
 // TODO Verschieben der Test-Klassen in den vorgesehenen Ordner
-// TODO Aufgabe 4 weiter machen
+// TODO Aufgabe 4 falls bisheriger Code OK -> Weitermachen
+// TODO Möglicherweise können die Testklassen nun den Proxy für Lokale Aufrufe verwenden
+
 public class RestfulApplication {
 
 	/**

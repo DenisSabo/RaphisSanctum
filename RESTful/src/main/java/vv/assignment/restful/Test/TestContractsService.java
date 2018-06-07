@@ -7,25 +7,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.Contract;
+import vv.assignment.restful.Proxy.LocalCallConstants;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 import java.net.URI;
 
-import static vv.assignment.restful.Test.TestConstants.REST_SERVICE_URI;
-import static vv.assignment.restful.Test.TestConstants.deleteTestUser;
+import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
+import static vv.assignment.restful.Proxy.LocalCallConstants.deleteTestUser;
+import static vv.assignment.restful.Proxy.LocalCallConstants.getAuthenticatedRestTemplate;
 
 public class TestContractsService {
     // This restTemplate uses a predefined User for basic authentication
-    static RestTemplate restTemplate = TestConstants.getAuthenticatedRestTemplate();
+    static RestTemplate restTemplate = getAuthenticatedRestTemplate();
 
     /**
      * Creates a User, that can be used for authentication by the test cases
      */
     @BeforeAll
     public static void createTestUser() throws ServerNotTunedOnRequestException {
-        TestConstants.createTestUser();
+        LocalCallConstants.createTestUser();
     }
 
     @AfterAll

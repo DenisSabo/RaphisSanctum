@@ -1,46 +1,33 @@
 package vv.assignment.restful.Test;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.support.BasicAuthorizationInterceptor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.test.web.servlet.MockMvc;
 import vv.assignment.restful.Adress;
-import vv.assignment.restful.Contract;
 import vv.assignment.restful.Customer;
-import vv.assignment.restful.user.User;
-
-import javax.xml.ws.Response;
+import vv.assignment.restful.Proxy.LocalCallConstants;
+import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static vv.assignment.restful.Test.TestConstants.*;
+import static vv.assignment.restful.Proxy.LocalCallConstants.deleteTestUser;
 
-import java.lang.invoke.MethodType;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Currency;
-import java.util.HashSet;
 
 public class TestCustomerService {
-
-    // This restTemplate uses a predefined User for basic authentication
-    static RestTemplate restTemplate = TestConstants.getAuthenticatedRestTemplate();
+    CustomerManagement proxy = new CustomerManagement();
 
     /**
      * Creates a User, that can be used for authentication by the test cases
      */
+
     @BeforeAll
     public static void createTestUser() throws ServerNotTunedOnRequestException {
-        TestConstants.createTestUser();
+        LocalCallConstants.createTestUser();
     }
 
     @AfterAll
@@ -67,13 +54,13 @@ public class TestCustomerService {
         /**
          * We assert that all Customers were created
          */
-        ResponseEntity<Void> gerhardResponse = createCustomer(Gerhard);
+        ResponseEntity<Void> gerhardResponse = proxy.createEntity(Gerhard);
         assertThat(gerhardResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
 
-        ResponseEntity<Void> annaResponse = createCustomer(Anna);
+        ResponseEntity<Void> annaResponse = proxy.createEntity(Anna);
         assertThat(annaResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
 
-        ResponseEntity<Void> turingResponse = createCustomer(Turing);
+        ResponseEntity<Void> turingResponse = proxy.createEntity(Turing);
         assertThat(turingResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
         /**
          * Get all Customers, because response of the post-request only returns URI to created Customer
@@ -84,55 +71,31 @@ public class TestCustomerService {
         /**
          * Request for new Customers
          */
-        ResponseEntity<Customer> customerGerhard = getCustomer(locationToGerhard);
+        ResponseEntity<Customer> customerGerhard = proxy.getEntity(locationToGerhard);
         assertThat(customerGerhard.getBody().getFirstname(), equalTo("Gerhard"));
 
-        ResponseEntity<Customer> customerAnna = getCustomer(locationToAnna);
+        ResponseEntity<Customer> customerAnna = proxy.getEntity(locationToAnna);
         assertThat(customerAnna.getBody().getFirstname(), equalTo("Anna"));
 
-        ResponseEntity<Customer> customerTuring = getCustomer(locationToTuring);
+        ResponseEntity<Customer> customerTuring = proxy.getEntity(locationToTuring);
         assertThat(customerTuring.getBody().getFirstname(), equalTo("Alan"));
         /**
          * Delete customers
          */
-        deleteCustomer(customerGerhard.getBody().getId());
-        deleteCustomer(customerAnna.getBody().getId());
-        deleteCustomer(customerTuring.getBody().getId());
+        proxy.deleteEntity(customerGerhard.getBody().getId());
+        proxy.deleteEntity(customerAnna.getBody().getId());
+        proxy.deleteEntity(customerTuring.getBody().getId());
         /**
          * Try to find Customers
          */
-        ResponseEntity<Customer> normallyGerhardNotFound = getCustomer(locationToGerhard);
+        ResponseEntity<Customer> normallyGerhardNotFound = proxy.getEntity(locationToGerhard);
         assertThat(normallyGerhardNotFound.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
 
-        ResponseEntity<Customer> normallyAnnaNotFound = getCustomer(locationToGerhard);
+        ResponseEntity<Customer> normallyAnnaNotFound = proxy.getEntity(locationToGerhard);
         assertThat(normallyAnnaNotFound.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
 
-        ResponseEntity<Customer> normallyTuringNotFound = getCustomer(locationToGerhard);
+        ResponseEntity<Customer> normallyTuringNotFound = proxy.getEntity(locationToGerhard);
         assertThat(normallyTuringNotFound.getStatusCode(), equalTo(HttpStatus.NO_CONTENT));
     }
 
-    /**
-     * Functions for easier interaction with API
-     * @param customer
-     * @return
-     */
-    private ResponseEntity<Void> createCustomer(Customer customer){
-        ResponseEntity<Void> postResponse =
-                restTemplate.postForEntity(REST_SERVICE_URI+"/customer", customer, Void.class);
-        return postResponse;
-    }
-
-    private ResponseEntity<Customer> getCustomer(URI location){
-        ResponseEntity<Customer> response =
-                restTemplate.getForEntity(location.toString(), Customer.class);
-        return response;
-    }
-
-    private void updateCustomer(String id, Customer newCustomer){
-        restTemplate.put(REST_SERVICE_URI+"/customer/"+id, newCustomer, Void.class);
-    }
-
-    private void deleteCustomer(Long id){
-        restTemplate.delete(REST_SERVICE_URI+"/customer/"+id, Customer.class);
-    }
 }

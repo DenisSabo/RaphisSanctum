@@ -10,6 +10,9 @@ import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.Adress;
 import vv.assignment.restful.Contract;
 import vv.assignment.restful.Customer;
+import vv.assignment.restful.Proxy.ContractProxy.ContractManagement;
+import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
+import vv.assignment.restful.Proxy.LocalCallConstants;
 
 import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
@@ -22,12 +25,12 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static vv.assignment.restful.Test.TestConstants.REST_SERVICE_URI;
-import static vv.assignment.restful.Test.TestConstants.deleteTestUser;
+import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
 
 public class TestCustomerContractService {
-    // This restTemplate uses a predefined User for basic authentication
-    static RestTemplate restTemplate = TestConstants.getAuthenticatedRestTemplate();
+    // Proxies for making requests to API easier
+    CustomerManagement customerProxy = new CustomerManagement();
+    ContractManagement contractProxy = new ContractManagement();
 
     /**
      * Customers that can be used in the test cases
@@ -50,7 +53,7 @@ public class TestCustomerContractService {
      */
     @BeforeAll
     public static void createTestUser() throws ServerNotTunedOnRequestException {
-        TestConstants.createTestUser();
+        LocalCallConstants.createTestUser();
         // Add contracts to customers
         List<Contract> contractPackage = new LinkedList<Contract>();
         contractPackage.add(healthInsurance);
@@ -62,7 +65,7 @@ public class TestCustomerContractService {
 
     @AfterAll
     public static void cleanUp(){
-        deleteTestUser();
+        LocalCallConstants.deleteTestUser();
     }
 
 
@@ -71,10 +74,10 @@ public class TestCustomerContractService {
         /**
          * Create customers in database and test if created successfully
          */
-        ResponseEntity<Void> gerhardResponse = createCustomer(gerhard);
+        ResponseEntity<Void> gerhardResponse = customerProxy.createEntity(gerhard);
         assertThat(gerhardResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
 
-        ResponseEntity<Void> annaResponse = createCustomer(anna);
+        ResponseEntity<Void> annaResponse = customerProxy.createEntity(anna);
         assertThat(annaResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
 
         /**
@@ -85,11 +88,11 @@ public class TestCustomerContractService {
         /**
          * Request for new Customers
          */
-        ResponseEntity<Customer> customerGerhard = getCustomer(locationToGerhard);
+        ResponseEntity<Customer> customerGerhard = customerProxy.getEntity(locationToGerhard);
         assert(customerGerhard.getBody().getContracts().contains(healthInsurance));
         assert(customerGerhard.getBody().getContracts().contains(liabilityInsurance));
 
-        ResponseEntity<Customer> customerAnna = getCustomer(locationToAnna);
+        ResponseEntity<Customer> customerAnna = customerProxy.getEntity(locationToAnna);
         assert(customerAnna.getBody().getContracts().contains(healthInsurance));
         assert(customerAnna.getBody().getContracts().contains(liabilityInsurance));
 
@@ -97,8 +100,8 @@ public class TestCustomerContractService {
          * Delete customers from database -> Clean up
          */
 
-        deleteCustomer(customerAnna.getBody().getId());
-        deleteCustomer(customerGerhard.getBody().getId());
+        customerProxy.deleteEntity(customerAnna.getBody().getId());
+        customerProxy.deleteEntity(customerGerhard.getBody().getId());
 
     }
 
@@ -107,67 +110,20 @@ public class TestCustomerContractService {
         /**
          * Delete contract while user has contract, should not be possible
          */
-        ResponseEntity<Void> responseCreate = createCustomer(gerhard);
+        ResponseEntity<Void> responseCreate = customerProxy.createEntity(gerhard);
 
-        ResponseEntity<Customer> responseGet = getCustomer(responseCreate.getHeaders().getLocation());
+        ResponseEntity<Customer> responseGet = customerProxy.getEntity(responseCreate.getHeaders().getLocation());
         /**
          * Get contractId of first element in customers contracts, and try to delete it
          */
         Long firstContractId = responseGet.getBody().getContracts().get(0).getId();
         try {
-            deleteContract(URI.create(REST_SERVICE_URI + "/contract/" + firstContractId));
+            contractProxy.deleteEntity(firstContractId);
         }
         catch(ConstraintViolationException ex){
             // Thats expected
+
         }
         // TODO 500 -> ConstraintViolationException -> ConstraintViolation is excepted
-    }
-
-    // TODO Kommen doppelt vor !
-    /**
-     * Functions for easier interaction with API
-     * @param customer
-     * @return
-     */
-    private ResponseEntity<Void> createCustomer(Customer customer){
-        ResponseEntity<Void> postResponse =
-                restTemplate.postForEntity(REST_SERVICE_URI+"/customer", customer, Void.class);
-        return postResponse;
-    }
-
-    private ResponseEntity<Customer> getCustomer(URI location){
-        ResponseEntity<Customer> response =
-                restTemplate.getForEntity(location.toString(), Customer.class);
-        return response;
-    }
-
-    private void updateCustomer(String id, Customer newCustomer){
-        restTemplate.put(REST_SERVICE_URI+"/customer/"+id, newCustomer, Void.class);
-    }
-
-    private void deleteCustomer(Long id){
-        restTemplate.delete(REST_SERVICE_URI+"/customer/"+id, Customer.class);
-    }
-
-    private ResponseEntity<Void> createContract(Contract contract){
-        ResponseEntity<Void> response = restTemplate.postForEntity(REST_SERVICE_URI+"/contract",
-                contract, Void.class);
-        return response;
-    }
-
-    private ResponseEntity<Contract> getContract(URI location){
-        return restTemplate.getForEntity(location.toString(), Contract.class);
-    }
-
-    private void updateContract(String id, Contract newContract){
-        // TODO restTemplate returned nichts ???????? Zumindest ResponseEntity wäre ganz nützlich!
-        restTemplate.put(REST_SERVICE_URI+"/contract/"+id, newContract, Contract.class);
-    }
-
-    private void deleteContract(URI location){
-        // TODO implement
-        // TODO What to do, if user has this kind of contract ? Do not delete until no user has this contract anymore
-        // TODO add Status to contract -> Boolean deprecatedContract -> prevents more of these in Constructor
-        restTemplate.delete(location);
     }
 }

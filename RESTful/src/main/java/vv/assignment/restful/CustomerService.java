@@ -21,16 +21,14 @@ public class CustomerService {
     @Autowired
     private CustomerRepository repo;
 
-    @Autowired
-    private ContractRepository repoContr;
 
     // Finds customer by ID
     @GetMapping(value = "/customer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> findById(@PathVariable String id) {
-        Optional<Customer> c = repo.findById(Long.parseLong(id));
+        Optional<Customer> customer = repo.findById(Long.parseLong(id));
         //  Returns Customer or empty customer
-        if(c.isPresent()){
-            return new ResponseEntity<Customer>(c.get(), HttpStatus.OK);
+        if(customer.isPresent()){
+            return new ResponseEntity<Customer>(customer.get(), HttpStatus.OK);
         }
         else{
             return new ResponseEntity<Customer>(HttpStatus.NO_CONTENT);
@@ -87,7 +85,7 @@ public class CustomerService {
     // TODO Einmal nach spezifizierten Standard, siehe CustomerResponseWrapper -> Returned Error-Infromation im Body
 
     @DeleteMapping(value = "/customer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<? extends Customer> deleteCustomer(@PathVariable String id) {
+    public ResponseEntity<Customer> deleteCustomer(@PathVariable String id) {
         Optional<Customer> maybeOldCustomer = repo.findById(Long.parseLong(id));
         // If Customer was found delete it, else return NOT_FOUND status with additional error information in body
         if(maybeOldCustomer.isPresent()){
@@ -96,13 +94,8 @@ public class CustomerService {
             return new ResponseEntity<Customer>(oldCustomer, HttpStatus.OK);
         }
         else{
-            CustomerResponseWrapper responseForCustomer =
-                    new CustomerResponseWrapper(null,
-                            "No Customer with Id: " + id + " found for removal.");
-
-            ResponseEntity<CustomerResponseWrapper> errorResponse =
-                    new ResponseEntity<CustomerResponseWrapper>(responseForCustomer, HttpStatus.NOT_FOUND);
-            return errorResponse;
+            ResponseEntity<Customer> response = new ResponseEntity<Customer>(HttpStatus.NOT_FOUND);
+            return response;
         }
     }
 }

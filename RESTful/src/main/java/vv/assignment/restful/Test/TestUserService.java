@@ -6,28 +6,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
+import vv.assignment.restful.Proxy.UserProxy.UserManagement;
 import vv.assignment.restful.user.User;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static vv.assignment.restful.Test.TestConstants.REST_SERVICE_URI;
+import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
 
 public class TestUserService {
 
-    @Before
-    public static void deleteAccounts0(){
-        RestTemplate restTemplate = new RestTemplate();
-        /**
-         * Check if user already exists
-         */
-        User user = new User("TestClient", "123", null);
-        ResponseEntity<User> response0 = restTemplate
-                .getForEntity(REST_SERVICE_URI+"/user/"+user.getUsername(), User.class);
-        // If so, delete this user
-        if(response0.getStatusCode().equals(HttpStatus.OK))
-            restTemplate.delete(REST_SERVICE_URI+"/user/"+user.getUsername(), User.class);
-    }
-    // Does the Account/User creation work ?
+    UserManagement userProxy = new UserManagement();
+
+    /**
+     * Test if creation of new users work
+     */
     @Test
     public void createAccount(){
         RestTemplate restTemplate = new RestTemplate();
@@ -35,33 +27,21 @@ public class TestUserService {
         /**
          * Post user to endpoint
          */
-        ResponseEntity<User> response1 = restTemplate
-                .postForEntity(REST_SERVICE_URI+"/user", user, User.class);
+        ResponseEntity<Void> response1 = userProxy.createEntity(user);
 
-        // New User was created
+        // Test if new user was created successfully
         assertThat(response1.getStatusCode(), equalTo(HttpStatus.CREATED));
-        /**
-         * ResponseEntity contains created user
-         */
-        assertThat(response1.getBody().getUsername(), equalTo("TestClient"));
+
+        // now get recently created user
+        ResponseEntity<User> userInResponse = userProxy.getEntity(response1.getHeaders().getLocation());
+        assertThat(userInResponse.getBody().getUsername(), equalTo("TestClient"));
+
         // Password is encoded with BCrypt, so the BCryptPasswordEncoder have to compare raw and encoded password
-        assert(passwordEncoder().matches("123", response1.getBody().getPassword()));
-        assertThat(response1.getBody().getRole(), equalTo(null));
+        assert(passwordEncoder().matches("123", userInResponse.getBody().getPassword()));
+        assertThat(userInResponse.getBody().getRole(), equalTo(null));
     }
 
-    @Before
-    public static void deleteAccounts1(){
-        RestTemplate restTemplate = new RestTemplate();
-        /**
-         * Check if user already exists
-         */
-        User user = new User("Account", "123", null);
-        ResponseEntity<User> response0 = restTemplate
-                .getForEntity(REST_SERVICE_URI+"/user/"+user.getUsername(), User.class);
-        // If so, delete this user
-        if(response0.getStatusCode().equals(HttpStatus.OK))
-            restTemplate.delete(REST_SERVICE_URI+"/user/"+user.getUsername(), User.class);
-    }
+
     /**
      * Testcase: Somebody tries to create same account two times
      * Expected Result: Fitting HttpStatus-Code and Header
@@ -75,15 +55,13 @@ public class TestUserService {
         /**
          * Post user to endpoint
          */
-        ResponseEntity<User> response1 = restTemplate
-                .postForEntity(REST_SERVICE_URI+"/user", user, User.class);
+        ResponseEntity<Void> response1 = userProxy.createEntity(user);
         /**
-         * Post same user two times
+         * Post same user again
          */
-        ResponseEntity<User> response2 = restTemplate
-                .postForEntity(REST_SERVICE_URI+"/user", sameUser, User.class);
+        ResponseEntity<Void> response2 = userProxy.createEntity(sameUser);
 
-        // New User was created
+        // First request should be successful
         assertThat(response1.getStatusCode(), equalTo(HttpStatus.CREATED));
         /**
          * Second response should be a bad request
@@ -95,6 +73,8 @@ public class TestUserService {
     // TODO implement delete account
 
     // TODO implement change account
+
+    // Later there could be tests which try to create invalid accounts (For example, to short password, etc.)
 
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

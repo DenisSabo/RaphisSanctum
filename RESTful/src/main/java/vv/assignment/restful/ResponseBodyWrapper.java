@@ -37,6 +37,11 @@ public class ResponseBodyWrapper<T>{
                                 HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN, HttpStatus.INTERNAL_SERVER_ERROR};
     public static final Set<HttpStatus> API_USED_STATUS = new HashSet<>(Arrays.asList(USED_STATUS));
 
+
+    public ResponseBodyWrapper(T responseEnitity){
+        this.responseEntity = responseEnitity;
+    }
+
     public ResponseBodyWrapper(T responseEnitity, HttpStatus status){
         // API only uses certain HttpStatus
         if(!isAllowedStatus(status))
