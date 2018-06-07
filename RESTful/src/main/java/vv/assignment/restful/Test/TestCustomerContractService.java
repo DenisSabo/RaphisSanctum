@@ -1,36 +1,52 @@
 package vv.assignment.restful.Test;
 
-import org.junit.After;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import vv.assignment.restful.Adress;
 import vv.assignment.restful.Contract;
+import vv.assignment.restful.ContractService;
 import vv.assignment.restful.Customer;
 import vv.assignment.restful.Proxy.ContractProxy.ContractManagement;
 import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
 import vv.assignment.restful.Proxy.LocalCallConstants;
 
-import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.springframework.test.web.servlet.htmlunit.MockMvcWebClientBuilder.webAppContextSetup;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
 
+
+@WebMvcTest(value = Contract.class, secure = false)
 public class TestCustomerContractService {
     // Proxies for making requests to API easier
     CustomerManagement customerProxy = new CustomerManagement();
     ContractManagement contractProxy = new ContractManagement();
+
+    // Used for testing the Spring-MVC-Application
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ContractService contractService;
 
     /**
      * Customers that can be used in the test cases
@@ -67,7 +83,6 @@ public class TestCustomerContractService {
     public static void cleanUp(){
         LocalCallConstants.deleteTestUser();
     }
-
 
     @Test
     public void createCustomersWithContracts(){
@@ -106,7 +121,7 @@ public class TestCustomerContractService {
     }
 
     @Test
-    public void deleteContractWhileUserHasIt(){
+    public void deleteContractWhileUserHasIt() throws Exception {
         /**
          * Delete contract while user has contract, should not be possible
          */
@@ -117,13 +132,15 @@ public class TestCustomerContractService {
          * Get contractId of first element in customers contracts, and try to delete it
          */
         Long firstContractId = responseGet.getBody().getContracts().get(0).getId();
-        try {
-            contractProxy.deleteEntity(firstContractId);
-        }
-        catch(ConstraintViolationException ex){
-            // Thats expected
 
-        }
-        // TODO 500 -> ConstraintViolationException -> ConstraintViolation is excepted
+        contractProxy.deleteEntity(firstContractId);
+
+        //TODO improve proxy for this case
+        /**
+         * Assert that contract can still be found
+         */
+        ResponseEntity<Contract> getResponse =
+                contractProxy.getEntity(URI.create(REST_SERVICE_URI+"/contract/"+firstContractId));
+        assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.OK));
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.validation.ConstraintViolationException;
 import java.util.Optional;
 
 @ComponentScan("ContractRepository")
@@ -69,10 +70,20 @@ public class ContractService {
     @DeleteMapping(value = "/contract/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Contract> deleteContract(@PathVariable String id) {
         Optional<Contract> maybeOldContract = repo.findById(Long.parseLong(id));
-        // If Contract was found, delete it
+        // If Contract was found, try to delete it
         if(maybeOldContract.isPresent()){
             Contract oldContract = maybeOldContract.get();
-            repo.delete(oldContract);
+            try{
+                repo.delete(oldContract);
+            }
+            catch(org.springframework.dao.DataIntegrityViolationException ex){
+                /**
+                 * Sometimes it is not possible to delete a contract
+                 * because it is referenced by a customer.
+                 */
+                System.out.println(ex);
+                return new ResponseEntity<Contract>(HttpStatus.CONFLICT);
+            }
             return new ResponseEntity<Contract> (oldContract, HttpStatus.OK);
         }
         else{
