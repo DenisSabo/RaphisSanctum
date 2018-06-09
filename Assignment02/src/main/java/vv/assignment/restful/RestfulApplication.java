@@ -22,6 +22,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 // TODO trigger lost update test funktioniert nicht wenn CONFLICT returned wird
 // TODO Dokumentation verbessen
 // TODO Tests sollen Verhalten prüfen (und nicht Status Codes usw.)
+// TODO add class with static customers and stuff ...
 
 public class RestfulApplication {
 

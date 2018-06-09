@@ -1,4 +1,4 @@
-package vv.assignment.restful.user;
+package vv.assignment.restful.user.security;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

@@ -3,14 +3,11 @@ package vv.assignment.restful.ServiceTests;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.servlet.MockMvc;
-import vv.assignment.restful.Customer.Adress;
 import vv.assignment.restful.Contract.Contract;
-import vv.assignment.restful.Contract.ContractService;
+import vv.assignment.restful.Customer.Adress;
 import vv.assignment.restful.Customer.Customer;
 import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.Proxy.ContractProxy.ContractManagement;
@@ -35,13 +32,6 @@ public class TestCustomerContractService {
     // Proxies for making requests to API easier
     CustomerManagement customerProxy = new CustomerManagement();
     ContractManagement contractProxy = new ContractManagement();
-
-    // Used for testing the Spring-MVC-Application
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ContractService contractService;
 
     /**
      * Customers that can be used in the test cases
