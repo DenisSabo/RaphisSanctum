@@ -39,5 +39,6 @@ dependencies {
 	compile group: 'org.springframework.boot', name: 'spring-boot-starter-tomcat'
 	compile group: 'org.springframework', name: 'spring-web', version: '5.0.6.RELEASE'
 	compileOnly "org.springframework.boot:spring-boot-configuration-processor"
-
+	// https://mvnrepository.com/artifact/commons-lang/commons-lang
+	compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
 }

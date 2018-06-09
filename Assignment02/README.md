@@ -10,13 +10,13 @@ This is a RESTful server application, that provides basic CRUD interaction with 
     
 3. **CURL**-commands and other on: *https://documenter.getpostman.com/collection/view/3815462-ae0c490f-c3a2-442a-9c0f-5610cebc55f1*
 
-### Before interacting with API
+### Before interacting with Server/API
 
-1. This server uses a **SSL-Certificate** that was **self-generated**, so you have to .
-    - classify website as trustworthy in general to be able to interact with API
-    - Postman: Settings -> General -> SSL-Certification **off**
+1. This server uses a **self-signed SSL-Certificate**
+    - If you make requests with *Browser*: Accept Website as trustworthy in general to be able to interact with API
+    - If you are using *Postman*: Settings -> General -> SSL-Certification **off**
 
-2. **Authenticate** by posting to "https://localhost/8443/user" or you will get status code **401** (Unauthorized), when interacting with other endpoints.
+2. **Authenticate** yourself by posting to "https://localhost/8443/user" or you will get status code **401** (Unauthorized), when interacting with other endpoints.
 
 ### Authentication
 
@@ -30,15 +30,18 @@ This is a RESTful server application, that provides basic CRUD interaction with 
 
 3. Successfull post and put requests lead to **201** (created)
 
-4. A put or delete request to a non-existing source will lead to **404** (not found) 
+4. Sometimes you get a **400** (bad request)
+    - For example: Posting an invalid kind of contract (look up **json entity** for **contract** beneath)
+
+5. A put or delete request to a non-existing source will lead to **404** (not found) 
     - Or you do a request to an url that is not specified
 
-5. There are several reasons for a **409** (Conflict)
+6. There are several reasons for a **409** (Conflict)
     - Your update leads to a **lost** of an preceeding **update**
     - You try to **delete** a **resource**, that is **referenced** by an other
     - You try to create user with a **username** that **already exists**
 
-6. Else 500 if an unexpected error occurs. Please report
+7. Else 500 if an unexpected error occurs. Please report
 
 ### Posting/Creating Entities
 (Goes into request body)
@@ -74,7 +77,7 @@ This is a RESTful server application, that provides basic CRUD interaction with 
 3. JSON for posting to **Contract**: 
 ```json
 {
-	"kindOfContract": "Krankenversicherung", // Allowed values: "Krankenversicherung", "Haftplicht", "Rechtsschutz", "Kfz"
+	"kindOfContract": "Krankenversicherung", // Allowed values: "KRANKENVERSICHERUNG", "HAFTPFLICHT", "RECHTSSCHUTZ", "KFZ"
 	"yearlyFee": "49", 
 }
 ```

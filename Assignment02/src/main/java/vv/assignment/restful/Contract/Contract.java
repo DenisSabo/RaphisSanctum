@@ -1,27 +1,30 @@
 package vv.assignment.restful.Contract;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import vv.assignment.restful.Customer.Customer;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 public class Contract {
     @Id
     @GeneratedValue
     private Long id;
-
-    String kindOfContract;
+    @JsonProperty("kindOfContract")
+    AllowedContracts kindOfContract;
+    @JsonProperty("yearlyFee")
     BigDecimal yearlyFee;
 
     /**
      * Enum that restricts possible contracts
      */
     public enum AllowedContracts{
-        KRANKENVERSICHERUNG, HAFTPFLICHT, RECHTSSCHUTZ, KFZ
+        KRANKENVERSICHERUNG,
+        HAFTPFLICHT,
+        RECHTSSCHUTZ,
+        KFZ;
     }
 
     // Many contracts can be used by one customer
@@ -30,10 +33,12 @@ public class Contract {
             Customer customer;
 
     public Contract(){
+        super();
         // default constructor
     }
 
-    public Contract(AllowedContracts contract, BigDecimal yearlyFee){
+    @JsonCreator
+    public Contract(@JsonProperty("kindOfContract")AllowedContracts kindOfContract, @JsonProperty("yearlyFee")BigDecimal yearlyFee){
         this.kindOfContract = kindOfContract;
         this.yearlyFee = yearlyFee;
     }
@@ -46,11 +51,11 @@ public class Contract {
         this.id = id;
     }
 
-    public String getKindOfContract() {
+    public AllowedContracts getKindOfContract() {
         return kindOfContract;
     }
 
-    public void setKindOfContract(String kindOfContract) {
+    public void setKindOfContract(AllowedContracts kindOfContract) {
         this.kindOfContract = kindOfContract;
     }
 
