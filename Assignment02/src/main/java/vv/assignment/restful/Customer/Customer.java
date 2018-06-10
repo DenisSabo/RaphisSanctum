@@ -3,73 +3,92 @@ package vv.assignment.restful.Customer;
 import vv.assignment.restful.Contract.Contract;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+// Real primary key
+@Table(uniqueConstraints={@UniqueConstraint(columnNames ={"firstname","lastname", "dateOfBirth", "address_id"})})
 public class Customer {
+    /**
+     * artificial primary key of Customer-table is a auto generated ID value
+     */
     @Id
     @GeneratedValue
     private Long id;
+
+    @Size(min = 3, max = 20, message = "First name must be between 3 and 20 characters")
     private String firstname;
+
+    @Size(min = 3, max = 30, message = "Last name must be between 3 and 30 characters")
     private String lastname;
+
+    @NotNull(message = "Date of birth cannot be empty")
+    // Possible: Own constraint validator, that says a customer must be at least 18 years old
     private LocalDate dateOfBirth;
-    protected Integer versionnumber = 0;
 
-    // Customer has an adress
-    @OneToOne(
-            cascade = {CascadeType.ALL}
-            )
-    private Adress adress;
+    /**
+     * The entity has a version number that starts at zero and will be incremented, if entity will be updated.
+     * With the help of this field, the lost update problem can be solved (See CustomerService.java -> PutMapping)
+     */
+    private Integer versionnumber = 0;
 
-    // Customer can have many contracts
+    @NotNull // Customer needs an address
+    @OneToOne(targetEntity = Address.class, cascade = {CascadeType.ALL}) // Customer can only have one address.
+    private Address address;
+
+    // Customer can have many contracts (Can be null)
     @OneToMany(targetEntity = Contract.class, fetch=FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Contract> contracts;
 
-    /**
-     *  bidirectional associations should always provide
-     *  methods, which are used to synchronize both sides
-     *  of the relationship
-     *  Source: https://vladmihalcea.com/the-best-way-to-map-a-onetomany-association-with-jpa-and-hibernate/
-     */
-    public void addContract(Contract contract){
-        contracts.add(contract);
-        contract.setCustomer(this);
-    }
 
-    public void removeContract(Contract contract){
-        contracts.remove(contract);
-        contract.setCustomer(null);
-    }
 
     // Constructors
     public Customer(){
         //default constructor
     }
 
-    public Customer(String firstname, String lastname, LocalDate dateOfBirth, Adress adress) {
+    /**
+     * Constructor that can be used, if there are currently no contracts to pass
+     * @param firstname
+     * @param lastname
+     * @param dateOfBirth
+     * @param address
+     */
+    public Customer(String firstname, String lastname, LocalDate dateOfBirth, Address address) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.dateOfBirth = dateOfBirth;
-        this.adress = adress;
+        this.address = address;
     }
 
-    public Customer(String firstname, String lastname, LocalDate dateOfBirth, Adress adress, List<Contract> contracts) {
+    /**
+     * @param contracts which the customer has to pay for
+     */
+    public Customer(String firstname, String lastname, LocalDate dateOfBirth,
+                    Address address, List<Contract> contracts) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.dateOfBirth = dateOfBirth;
-        this.adress = adress;
+        this.address = address;
         this.contracts = contracts;
     }
 
-    // Version number can be incremented so it is helpful to prevent the Lost-Update problem
+
+    /**
+     * Increments version number of entity when entity properties got changed
+     */
     protected void increment(){
         this.versionnumber++;
     }
 
-    // Basic getter and setter
-    public Long getId() {
 
+
+    // Basic getter and setter
+
+    public Long getId() {
         return id;
     }
 
@@ -101,12 +120,12 @@ public class Customer {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Adress getAdress() {
-        return adress;
+    public Address getAddress() {
+        return address;
     }
 
-    public void setAdress(Adress adress) {
-        this.adress = adress;
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
     public List<Contract> getContracts() {
@@ -122,7 +141,16 @@ public class Customer {
     }
 
 
-    // Equals, HashCode, and toString()
+
+    // Equals, hashCode and toString
+
+    /**
+     * Tests if values in firstname, lastname, dateOfBirth, address are equal
+     * -> Real primary key, consists of
+     * This method does not compare the ID of two instances.
+     * @param o
+     * @return true if
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -130,10 +158,22 @@ public class Customer {
 
         Customer customer = (Customer) o;
 
-        return id.equals(customer.id);
+        if (!firstname.equals(customer.firstname)) return false;
+        if (!lastname.equals(customer.lastname)) return false;
+        if (!dateOfBirth.equals(customer.dateOfBirth)) return false;
+        return address.equals(customer.address);
     }
 
-    // TODO maybe other fields should be included as well
+    @Override
+    public int hashCode() {
+        int result = firstname.hashCode();
+        result = 31 * result + lastname.hashCode();
+        result = 31 * result + dateOfBirth.hashCode();
+        result = 31 * result + address.hashCode();
+        result = 31 * result + (contracts != null ? contracts.hashCode() : 0);
+        return result;
+    }
+
     @Override
     public String toString() {
         return "Customer{" +
@@ -141,12 +181,9 @@ public class Customer {
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", dateOfBirth='" + dateOfBirth + '\'' +
-                ", adress=" + adress +
+                ", address=" + address +
                 ", contracts=" + contracts +
                 '}';
     }
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
+
 }
