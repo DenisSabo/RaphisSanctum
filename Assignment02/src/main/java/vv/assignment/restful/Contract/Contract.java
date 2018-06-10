@@ -5,20 +5,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import vv.assignment.restful.Customer.Customer;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 @Entity
+@Table(uniqueConstraints={@UniqueConstraint(columnNames ={"kindOfContract","yearlyFee"})}) // Real primary key
 public class Contract {
     @Id
     @GeneratedValue
     private Long id;
+
     @JsonProperty("kindOfContract")
+    @NotNull
     AllowedContracts kindOfContract;
+
     @JsonProperty("yearlyFee")
+    @Positive // Only positive values, since yearlyFee for customer is profit for this company
     BigDecimal yearlyFee;
 
     /**
-     * Enum that restricts possible contracts
+     * Enum containing all possible values for field kindOfContracts
      */
     public enum AllowedContracts{
         KRANKENVERSICHERUNG,
@@ -28,20 +35,32 @@ public class Contract {
     }
 
     // Many contracts can be used by one customer
-    @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.PERSIST)
-    @JoinColumn(name="CUSTOMER_ID") // Foreign key
+    @ManyToOne(targetEntity = Customer.class, fetch = FetchType.EAGER, cascade=CascadeType.PERSIST)
+    @JoinColumn(name="customer.id") // Foreign key
             Customer customer;
 
+    /**
+     * Can be used if a response entity expects a Contract as param
+     */
     public Contract(){
         super();
         // default constructor
     }
 
+    /**
+     *
+     * @param kindOfContract Allowed values : KRANKENVERSICHERUNG, HAFTPFLICHT, RECHTSSCHUTZ, KFZ
+     * @param yearlyFee positive value
+     */
     @JsonCreator
     public Contract(@JsonProperty("kindOfContract")AllowedContracts kindOfContract, @JsonProperty("yearlyFee")BigDecimal yearlyFee){
         this.kindOfContract = kindOfContract;
         this.yearlyFee = yearlyFee;
     }
+
+
+
+    // Basic getter and setter
 
     public Long getId() {
         return id;
@@ -75,8 +94,13 @@ public class Contract {
         this.customer = customer;
     }
 
+
+
+    // Equals, hashCode and toString
+
     /**
-     * Do not compare Id's, because only content is relevant
+     * Test if values in kindOfContract and yearlyFee are the same
+     * This method does not compare the ID of two instances.
      * @param o
      * @return
      */
@@ -90,10 +114,10 @@ public class Contract {
         return kindOfContract.equals(contract.kindOfContract) && yearlyFee.equals(contract.yearlyFee);
     }
 
-    /**
     @Override
     public int hashCode() {
-        return id.hashCode();
+        int result = kindOfContract.hashCode();
+        result = 31 * result + yearlyFee.hashCode();
+        return result;
     }
-    */
 }
