@@ -5,10 +5,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import vv.assignment.restful.Customer.Adress;
+import vv.assignment.restful.Customer.Address;
 import vv.assignment.restful.Customer.Customer;
 import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
-import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
+import vv.assignment.restful.Proxy.CustomerManagement;
 import vv.assignment.restful.Proxy.LocalCallConstants;
 
 import java.net.URI;
@@ -28,11 +28,11 @@ public class TestCustomerService {
      * Customer data that can be used in the test cases
      */
     Customer gerhard = new Customer("Gerhard", "Schröder", LocalDate.of(1944, 4, 7),
-            new Adress("Hochschulstraße 1", "83022", "Rosenheim"));
+            new Address("Hochschulstraße 1", "83022", "Rosenheim"));
     Customer anna = new Customer("Anna", "Schmidt", LocalDate.of(2018, 6, 3),
-            new Adress("Hochschulstraße 2", "83022", "Rosenheim"));
+            new Address("Hochschulstraße 2", "83022", "Rosenheim"));
     Customer turing = new Customer("Alan", "Turing", LocalDate.of(1912, 6, 23),
-            new Adress("Hochschulstraße 3", "83022", "Rosenheim"));
+            new Address("Hochschulstraße 3", "83022", "Rosenheim"));
 
     @BeforeAll
     public static void createTestUser() throws ServerNotTunedOnRequestException {
@@ -68,7 +68,12 @@ public class TestCustomerService {
          */
         ResponseEntity<Customer> customerGerhard = proxy.getEntity(locationToGerhard);
         assertThat(customerGerhard.getBody().getFirstname(), equalTo("Gerhard"));
+        assertThat(customerGerhard.getBody().getLastname(), equalTo("Schröder"));
+        assertThat(customerGerhard.getBody().getDateOfBirth(), equalTo(LocalDate.of(1944, 4, 7)));
+        assertThat(customerGerhard.getBody().getAddress(),
+                equalTo(new Address("Hochschulstraße 1", "83022", "Rosenheim")));
 
+        // For the rest, only the first name will be tested
         ResponseEntity<Customer> customerAnna = proxy.getEntity(locationToAnna);
         assertThat(customerAnna.getBody().getFirstname(), equalTo("Anna"));
 

@@ -2,6 +2,7 @@ package vv.assignment.restful.Customer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -62,7 +63,7 @@ public class CustomerService {
             /**
              * Now prevent lost update problem
              */
-            if(oldCustomer.versionnumber == newCustomer.versionnumber){
+            if(oldCustomer.getVersionnumber() == newCustomer.getVersionnumber()){
                 // No update will be lost -> Allowed to update
                 oldCustomer.setFirstname(newCustomer.getFirstname());
                 oldCustomer.setLastname(newCustomer.getLastname());
@@ -92,7 +93,9 @@ public class CustomerService {
     // Create new Customer
     @PostMapping(value = "/customer", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void>  newCustomer(@RequestBody Customer customer, UriComponentsBuilder ucBuilder) {
+        System.out.println("The post-mapping customer looks like this: " + customer.toString());
         Long savedCustomerId = repo.save(customer).getId();
+
         /**
          * For each contract in customer, a Contract instance with foreign key to customer must be saved
          */

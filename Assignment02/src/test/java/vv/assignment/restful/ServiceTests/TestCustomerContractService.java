@@ -7,11 +7,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import vv.assignment.restful.Contract.Contract;
-import vv.assignment.restful.Customer.Adress;
+import vv.assignment.restful.Customer.Address;
 import vv.assignment.restful.Customer.Customer;
 import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
-import vv.assignment.restful.Proxy.ContractProxy.ContractManagement;
-import vv.assignment.restful.Proxy.CustomerProxy.CustomerManagement;
+import vv.assignment.restful.Proxy.ContractManagement;
+import vv.assignment.restful.Proxy.CustomerManagement;
 import vv.assignment.restful.Proxy.LocalCallConstants;
 
 import java.math.BigDecimal;
@@ -38,11 +38,11 @@ public class TestCustomerContractService {
      */
     static Customer gerhard = new Customer("Gerhard", "Schröder",
             LocalDate.of(1944, 4, 7),
-            new Adress("Hochschulstraße 1", "83022", "Rosenheim"));
+            new Address("Hochschulstraße 1", "83022", "Rosenheim"));
 
     static Customer anna = new Customer("Anna", "Schmidt",
             LocalDate.of(2018, 6, 3),
-            new Adress("Hochschulstraße 2", "83022", "Rosenheim"));
+            new Address("Hochschulstraße 2", "83022", "Rosenheim"));
     /**
      * Contracts that can be used in test cases
      */

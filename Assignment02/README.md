@@ -62,7 +62,7 @@ This is a RESTful server application, that provides basic CRUD interaction with 
 	"firstname": "Günther",
 	"lastname": "Schmidt", 
 	"dateOfBirth": "1984-04-20",
-	"adress": {
+	"address": {
 		"street": "Hochschulstraße 1",
 		"postalcode": "83022",
 		"place": "Rosenheim"

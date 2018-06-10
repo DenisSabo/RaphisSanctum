@@ -1,4 +1,4 @@
-package vv.assignment.restful.Proxy.UserProxy;
+package vv.assignment.restful.Proxy;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;

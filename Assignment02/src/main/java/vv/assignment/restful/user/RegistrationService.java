@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-public class RegistrationController {
+public class RegistrationService {
     @Autowired
     UserRepository repo;
 

@@ -17,12 +17,12 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebSecurity
 @EnableWebMvc
 // TODO TestCustomerContractService fertig
-// TODO Aufgabe 4 falls bisheriger Code OK -> Weitermachen
-// TODO LostUpdate Lösung!
-// TODO trigger lost update test funktioniert nicht wenn CONFLICT returned wird
 // TODO Dokumentation verbessen
 // TODO Tests sollen Verhalten prüfen (und nicht Status Codes usw.)
 // TODO add class with static customers and stuff ...
+// TODO Nicht mehr möglich nicht-enum-Werte für Contracts zu posten, aber fange Fehler ab und setzte HttpStatus
+// TODO Primärschlüssel für Customer (alle spalten) oder irwas anderes (unique)
+// TODO ManyToOne() -> Viele Contracts können zu einem User gehören -> API erweitern damit das möglich ist
 
 public class RestfulApplication {
 

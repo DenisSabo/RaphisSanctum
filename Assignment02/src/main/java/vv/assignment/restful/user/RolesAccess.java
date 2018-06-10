@@ -5,6 +5,7 @@ import javax.persistence.Id;
 
 /**
  * User has a role, which gives him different access rights
+ * Not used currently.
  */
 @Entity
 public class RolesAccess {
