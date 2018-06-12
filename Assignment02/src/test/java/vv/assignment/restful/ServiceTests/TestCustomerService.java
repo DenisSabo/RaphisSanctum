@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import vv.assignment.restful.Customer.Address;
 import vv.assignment.restful.Customer.Customer;
 import vv.assignment.restful.Customer.CustomerService;
-import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.Proxy.CustomerManagement;
 import vv.assignment.restful.Proxy.LocalRequestsUtil;
 
@@ -37,11 +36,9 @@ public class TestCustomerService {
     Customer gerhard, anna, turing;
 
     @BeforeAll
-    public static void createTestUser() throws ServerNotTunedOnRequestException {
+    public static void createTestUser() {
         LocalRequestsUtil.createTestUser();
     }
-
-
 
     @AfterAll
     public static void cleanUp(){
@@ -49,10 +46,10 @@ public class TestCustomerService {
     }
 
     /**
-     * Initializes customers for each test again, so if they got changed, it does not effect the other tests
+     * re-initialises instances  so tests do not influence each other
      */
     @BeforeEach
-    public void initializeCustomers() {
+    public void reinitialiseCustomers() {
         System.out.println("Meeh");
         gerhard = new Customer("Gerhard", "Schröder", LocalDate.of(1944, 4, 7),
                 new Address("Hochschulstraße 1", "83022", "Rosenheim"));
@@ -62,6 +59,8 @@ public class TestCustomerService {
                 new Address("Hochschulstraße 3", "83022", "Rosenheim"));
     }
 
+
+
     /**
      * After each, delete customers repo so no clean up in each test is needed
      */
@@ -69,6 +68,8 @@ public class TestCustomerService {
     public void deleteAllCustomers() {
         proxy.deleteAll();
     }
+
+
 
     /**
      * Tests if Customers are created and deleted correctly
@@ -120,6 +121,8 @@ public class TestCustomerService {
         assertThat(proxy.getEntity(locationToAnna).getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
         assertThat(proxy.getEntity(locationToTuring).getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
     }
+
+
 
     /**
      * Tests if customer us updated correctly
@@ -223,5 +226,18 @@ public class TestCustomerService {
 
         assertThat(deleteResponse.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
 
+    }
+
+    @Test
+    public void saveInvalidCustomer () {
+
+        // Min length for firstname is 3
+        gerhard.setFirstname("A");
+
+        // try to save invalid customer
+        ResponseEntity<Void> postResponse = proxy.createEntity(gerhard);
+
+        // will return BAD_REQUEST if invalid
+        assertThat(postResponse.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
     }
 }

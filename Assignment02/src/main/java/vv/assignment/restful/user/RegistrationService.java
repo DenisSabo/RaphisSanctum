@@ -9,6 +9,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+import vv.assignment.restful.user.UserExceptions.InvalidUserException;
+import vv.assignment.restful.user.UserExceptions.UserAlreadyExistsException;
+import vv.assignment.restful.user.UserExceptions.UserNotFoundException;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -27,33 +31,46 @@ public class RegistrationService {
     }
 
     /**
-     * Saves user to database
+     * Creates new user entry in database
+     * @param user that will be saved to database
+     * @returns the new user
      */
     @PostMapping(value = "/user",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<User> submitRegistration(@Valid @RequestBody User user, BindingResult result) {
-        // Result of validation
+    public ResponseEntity<Void> submitRegistration(@Valid @RequestBody User user, UriComponentsBuilder ucBuilder,
+                                                   BindingResult result) {
+
+        // result of validation
         if(result.hasErrors()){
-            return new ResponseEntity<User>(HttpStatus.BAD_REQUEST);
+            throw new InvalidUserException();
         }
         else{
+            // Encodes password
             user.setPassword(passwordEncoder().encode(user.getPassword()));
+
             try{
+                // try to save new user
                 userService.saveUser(user);
-                return new ResponseEntity<User>(user, HttpStatus.CREATED);
             }
-            // Sometimes User cannot be saved, because of Constraints in definition (for example @NotNull)
-            catch(org.hibernate.exception.ConstraintViolationException ex){
-                // Additional information about what constraint got violated
-                HttpHeaders headers = new HttpHeaders();
-                // TODO mehr Info und eher in Body
-                headers.add("ConstraintViolation", ex.getConstraintName());
-                return new ResponseEntity<User>(headers, HttpStatus.CONFLICT);
+            // throws error if user already exists
+            catch(org.springframework.dao.DataIntegrityViolationException ex){
+                throw new UserAlreadyExistsException();
             }
+
+            HttpHeaders headers = new HttpHeaders();
+
+            // Sets a header with direct path to created Customer
+            headers.setLocation(ucBuilder.path("/user/{username}").buildAndExpand(user.getUsername()).toUri());
+
+            return new ResponseEntity(headers, HttpStatus.CREATED);
         }
     }
 
-    // Get all users
+
+
+    /**
+     * @returns all users from database
+     */
     @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity< List<User>> findAll() {
         List<User> liste = new ArrayList<>();
@@ -62,30 +79,55 @@ public class RegistrationService {
         return new ResponseEntity<List<User>>(liste, HttpStatus.OK);
     }
 
-    // Get one specific user
+
+    /**
+     * gets one specific user by username
+     * @param username of user that will be searched for
+     * @returns the user with passed username if exists
+     */
     @GetMapping(value = "/user/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<User> findOne(@PathVariable String username) {
+    public ResponseEntity<User> findOneByUsername(@PathVariable String username) {
+
         Optional<User> maybeUser = repo.findByUsername(username);
+
         if(maybeUser.isPresent()){
             return new ResponseEntity<User>(maybeUser.get(), HttpStatus.OK);
         }
         else{
-            return new ResponseEntity<User>(new User(), HttpStatus.NO_CONTENT);
+            throw new UserNotFoundException();
         }
     }
 
-    // Deletes user by username
+
+
+    /**
+     * deletes user by username
+     * @param username of user that will be deleted if exists
+     * @returns user with passed username
+     */
     @DeleteMapping(value = "/user/{username}")
     public ResponseEntity<User> deleteByUsername(@PathVariable String username) {
+
         Optional<User> maybeUser= repo.findByUsername(username);
+
         if(maybeUser.isPresent()){
+
             User oldUser = maybeUser.get();
+
+            // delete user
             repo.delete(oldUser);
-            return new ResponseEntity<User> (oldUser, HttpStatus.OK);
+
+            // returns deleted user and status
+            return new ResponseEntity<> (oldUser, HttpStatus.OK);
         }
         else{
-            // Customer was not found -> return empty customer
-            return new ResponseEntity<User> (new User(), HttpStatus.NO_CONTENT);
+
+            throw new UserNotFoundException();
         }
+    }
+
+    @DeleteMapping(value="/users")
+    public void deleteAll(){
+        repo.deleteAll();
     }
 }

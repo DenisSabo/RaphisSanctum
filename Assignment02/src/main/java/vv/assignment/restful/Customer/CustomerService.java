@@ -1,18 +1,21 @@
 package vv.assignment.restful.Customer;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import vv.assignment.restful.Customer.CustomerExceptions.CustomerAlreadyChangedException;
 import vv.assignment.restful.Customer.CustomerExceptions.CustomerAlreadyExistsException;
 import vv.assignment.restful.Customer.CustomerExceptions.CustomerNotFoundException;
+import vv.assignment.restful.Customer.CustomerExceptions.InvalidCustomerException;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -121,9 +124,12 @@ public class CustomerService {
      * @throws CustomerAlreadyExistsException when client tries to save user, that has same values in primary key
      */
     @PostMapping(value = "/customer", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void>  newCustomer(@RequestBody Customer customer, UriComponentsBuilder ucBuilder)
-    throws CustomerAlreadyExistsException {
-
+    public ResponseEntity<Void>  newCustomer(@Valid @RequestBody Customer customer, UriComponentsBuilder ucBuilder,
+                                             BindingResult result) throws CustomerAlreadyExistsException {
+        // saved customer's id
+        if(result.hasErrors()){
+            throw new InvalidCustomerException();
+        }
         Long savedCustomerId;
 
         try {

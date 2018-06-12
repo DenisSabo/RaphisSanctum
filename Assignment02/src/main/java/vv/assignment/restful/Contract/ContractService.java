@@ -13,7 +13,10 @@ import vv.assignment.restful.Contract.ContractExceptions.ContractAlreadyChangedE
 import vv.assignment.restful.Contract.ContractExceptions.ContractAlreadyExistsException;
 import vv.assignment.restful.Contract.ContractExceptions.ContractNotFoundException;
 import vv.assignment.restful.Contract.ContractExceptions.ContractReferencedByCustomerException;
+import vv.assignment.restful.Customer.Customer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -97,6 +100,14 @@ public class ContractService {
         }
     }
 
+    @GetMapping(value="/contracts", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Contract>> getContracts(){
+        List<Contract> liste = new ArrayList<>();
+        Iterable<Contract> iterator = repo.findAll();
+        iterator.forEach(liste::add);
+        System.out.println(liste);
+        return new ResponseEntity<>(liste, HttpStatus.OK);
+    }
 
 
     /**

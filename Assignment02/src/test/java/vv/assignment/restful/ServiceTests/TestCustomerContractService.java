@@ -1,18 +1,16 @@
 package vv.assignment.restful.ServiceTests;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.jupiter.api.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import vv.assignment.restful.Contract.Contract;
 import vv.assignment.restful.Customer.Address;
 import vv.assignment.restful.Customer.Customer;
-import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.Proxy.ContractManagement;
 import vv.assignment.restful.Proxy.CustomerManagement;
-import vv.assignment.restful.Proxy.LocalCallConstants;
+import vv.assignment.restful.Proxy.LocalRequestsUtil;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -24,106 +22,119 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static vv.assignment.restful.Contract.Contract.AllowedContracts.HAFTPFLICHT;
 import static vv.assignment.restful.Contract.Contract.AllowedContracts.KRANKENVERSICHERUNG;
-import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
+import static vv.assignment.restful.Proxy.LocalRequestsUtil.REST_SERVICE_URI;
 
 
-@WebMvcTest(value = Contract.class, secure = false)
 public class TestCustomerContractService {
     // Proxies for making requests to API easier
     CustomerManagement customerProxy = new CustomerManagement();
     ContractManagement contractProxy = new ContractManagement();
 
     /**
-     * Customers that can be used in the test cases
+     * Customers that can be used for tests
      */
-    static Customer gerhard = new Customer("Gerhard", "Schröder",
-            LocalDate.of(1944, 4, 7),
-            new Address("Hochschulstraße 1", "83022", "Rosenheim"));
+    Customer gerhard, anna;
 
-    static Customer anna = new Customer("Anna", "Schmidt",
-            LocalDate.of(2018, 6, 3),
-            new Address("Hochschulstraße 2", "83022", "Rosenheim"));
-    /**
-     * Contracts that can be used in test cases
-     */
-    static Contract healthInsurance = new Contract(KRANKENVERSICHERUNG, new BigDecimal("222.22"));
-    static Contract liabilityInsurance = new Contract(HAFTPFLICHT, new BigDecimal("220.56"));
 
     /**
-     * Creates a User, that can be used for authentication by the test cases
+     * Contracts that can be used for tests
+     */
+    Contract healthInsurance;
+    Contract liabilityInsurance;
+
+    /**
+     * creates test user
      */
     @BeforeAll
-    public static void createTestUser() throws ServerNotTunedOnRequestException {
-        LocalCallConstants.createTestUser();
-        // Add contracts to customers
+    public static void createTestUser() {
+        LocalRequestsUtil.createTestUser();
+    }
+
+    /**
+     * deletes test user
+     */
+    @AfterAll
+    public static void cleanUp(){
+        LocalRequestsUtil.deleteTestUser();
+    }
+
+
+    /**
+     * re-initialises instances  so tests do not influence each other
+     */
+    @BeforeEach
+    public void reinitialiseInstances() {
+        // some customers
+        gerhard = new Customer("Gerhard", "Schröder",
+                LocalDate.of(1944, 4, 7),
+                new Address("Hochschulstraße 1", "83022", "Rosenheim"));
+
+        anna = new Customer("Anna", "Schmidt",
+                LocalDate.of(2018, 6, 3),
+                new Address("Hochschulstraße 2", "83022", "Rosenheim"));
+
+        // some contracts
+        healthInsurance = new Contract(KRANKENVERSICHERUNG, new BigDecimal("222.22"));
+        liabilityInsurance = new Contract(HAFTPFLICHT, new BigDecimal("220.56"));
+
+        // contracts bundled
         List<Contract> contractPackage = new LinkedList<Contract>();
         contractPackage.add(healthInsurance);
         contractPackage.add(liabilityInsurance);
+
+        // Add contract package to customers
         gerhard.setContracts(contractPackage);
         anna.setContracts(contractPackage);
-
     }
 
-    @AfterAll
-    public static void cleanUp(){
-        LocalCallConstants.deleteTestUser();
+    @AfterEach
+    public void deleteContractsAndCustomers() {
+        customerProxy.deleteAll();
+        contractProxy.deleteAll();
     }
 
+    /**
+     * Creates a customer with some contracts
+     */
     @Test
-    public void createCustomersWithContracts(){
-        /**
-         * Create customers in database and test if created successfully
-         */
+    public void createCustomerWithContracts(){
+
+        // Create customers
         ResponseEntity<Void> gerhardResponse = customerProxy.createEntity(gerhard);
+
+        // check status codes of responses
         assertThat(gerhardResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
 
-        ResponseEntity<Void> annaResponse = customerProxy.createEntity(anna);
-        assertThat(annaResponse.getStatusCode(), equalTo(HttpStatus.CREATED));
 
-        /**
-         * Get all Customers, because response of the post-request only returns URI to created Customer
-         */
+        // get location of new customers
         URI locationToGerhard = gerhardResponse.getHeaders().getLocation();
-        URI locationToAnna = annaResponse.getHeaders().getLocation();
-        /**
-         * Request for new Customers
-         */
+
+        // actually request for new customers and test if customers contain contracts as expected
         ResponseEntity<Customer> customerGerhard = customerProxy.getEntity(locationToGerhard);
         assert(customerGerhard.getBody().getContracts().contains(healthInsurance));
         assert(customerGerhard.getBody().getContracts().contains(liabilityInsurance));
-
-        ResponseEntity<Customer> customerAnna = customerProxy.getEntity(locationToAnna);
-        assert(customerAnna.getBody().getContracts().contains(healthInsurance));
-        assert(customerAnna.getBody().getContracts().contains(liabilityInsurance));
-
-        /**
-         * Delete customers from database -> Clean up
-         */
-
-        customerProxy.deleteEntity(customerAnna.getBody().getId());
-        customerProxy.deleteEntity(customerGerhard.getBody().getId());
-
     }
 
+
+    /**
+     * Try to delete contract while customer has it, should not be possible
+     */
     @Test
-    public void deleteContractWhileUserHasIt() throws Exception {
-        /**
-         * Delete contract while user has contract, should not be possible
-         */
+    public void deleteContractWhileCustomerHasIt() throws Exception {
+
+        // create customer with contracts
         ResponseEntity<Void> responseCreate = customerProxy.createEntity(gerhard);
 
+        // get customer from database, so customer- and contract-entity has IDs now
         ResponseEntity<Customer> responseGet = customerProxy.getEntity(responseCreate.getHeaders().getLocation());
-        /**
-         * Get contractId of first element in customers contracts, and try to delete it
-         */
+
+        // Get contractId of first element in customers contracts, and try to delete it
         Long firstContractId = responseGet.getBody().getContracts().get(0).getId();
 
+        // try to delete first contract from customer
         contractProxy.deleteEntity(firstContractId);
 
-        //TODO improve proxy for this case
-        /**
-         * Assert that contract can still be found
-         */
+        // Assert that contract can still be found
         ResponseEntity<Contract> getResponse =
                 contractProxy.getEntity(URI.create(REST_SERVICE_URI+"/contract/"+firstContractId));
         assertThat(getResponse.getStatusCode(), equalTo(HttpStatus.OK));

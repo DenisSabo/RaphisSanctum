@@ -1,18 +1,19 @@
 package vv.assignment.restful.Proxy;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import vv.assignment.restful.Proxy.CRUDable;
 import vv.assignment.restful.user.User;
 
 import java.net.URI;
 
-import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
-import static vv.assignment.restful.Proxy.LocalCallConstants.getAuthenticatedRestTemplate;
+import static vv.assignment.restful.Proxy.LocalRequestsUtil.REST_SERVICE_URI;
+import static vv.assignment.restful.Proxy.LocalRequestsUtil.disableErrorHandler;
+import static vv.assignment.restful.Proxy.LocalRequestsUtil.getAuthenticatedRestTemplate;
 
 public class UserManagement implements CRUDable<User>{
 
-    static RestTemplate restTemplate = getAuthenticatedRestTemplate();
+    static RestTemplate restTemplate = disableErrorHandler(new RestTemplate());
 
     public UserManagement(){
         // default constructor
@@ -44,6 +45,12 @@ public class UserManagement implements CRUDable<User>{
     public void deleteEntity(Long id) {
         restTemplate.delete(REST_SERVICE_URI+"/user/"+id, User.class);
     }
+
+
+    public void deleteAll(){
+        restTemplate.exchange(REST_SERVICE_URI + "/users", HttpMethod.DELETE, null, Void.class);
+    }
+
 
     /**
      * User API works a lot with usernames, so additional methods are needed

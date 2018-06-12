@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.user.User;
 
 public interface LocalRequestsUtil {
@@ -43,11 +42,7 @@ public interface LocalRequestsUtil {
 
     public static RestTemplate getAuthenticatedRestTemplate(){
         // disables the default error handling in tests
-        restTemplate.setErrorHandler(new DefaultResponseErrorHandler(){
-            protected boolean hasError(HttpStatus statusCode) {
-                return false;
-            }});
-
+        disableErrorHandler(restTemplate);
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
         return restTemplate;
     }
@@ -55,7 +50,7 @@ public interface LocalRequestsUtil {
     /**
      * Test-User may not exists, so we a function that creates one, if none exists
      */
-    public static void createTestUser() throws ServerNotTunedOnRequestException {
+    public static void createTestUser() {
         RestTemplate noAuthTemplate = new RestTemplate();
         /**
          * User that will be used for authentication during requests to secured endpoints
@@ -72,14 +67,6 @@ public interface LocalRequestsUtil {
 
             ResponseEntity<User> postUserRes =
                     noAuthTemplate.postForEntity(REST_SERVICE_URI+"/user", testUser, User.class);
-
-            if(postUserRes.getStatusCode().equals(HttpStatus.CREATED)){
-                // Everything is fine
-            }
-            else{
-                // User was not created
-                throw new ServerNotTunedOnRequestException("Unable to create necessary Test-User");
-            }
         }
         else if(mayGotUserRes.getStatusCode().equals(HttpStatus.OK)){
             // User exists already -> Do nothing
@@ -89,5 +76,13 @@ public interface LocalRequestsUtil {
     public static void deleteTestUser(){
         RestTemplate noAuthTemplate = new RestTemplate();
         noAuthTemplate.delete(REST_SERVICE_URI+"/user/"+ username);
+    }
+
+    public static RestTemplate disableErrorHandler(RestTemplate restTemplate) {
+        restTemplate.setErrorHandler(new DefaultResponseErrorHandler(){
+            protected boolean hasError(HttpStatus statusCode) {
+                return false;
+            }});
+        return restTemplate;
     }
 }

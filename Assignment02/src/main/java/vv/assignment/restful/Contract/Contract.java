@@ -36,10 +36,9 @@ public class Contract {
         KFZ;
     }
 
-    // Many contracts can be used by one customer
-    @ManyToOne(targetEntity = Customer.class, fetch = FetchType.EAGER, cascade=CascadeType.PERSIST)
-    @JoinColumn(name="customer.id") // Foreign key
-            Customer customer;
+    @ManyToOne(targetEntity = Customer.class, fetch=FetchType.EAGER)
+    @JoinColumn(name = "customer_id")
+    Customer customer;
 
     /**
      * Can be used if a response entity expects a Contract as param

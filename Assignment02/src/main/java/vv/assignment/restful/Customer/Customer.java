@@ -8,7 +8,7 @@ import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
 
-@Entity
+@Entity(name="customer")
 // Real primary key
 @Table(uniqueConstraints={@UniqueConstraint(columnNames ={"firstname","lastname", "dateOfBirth", "address_id"})})
 public class Customer {
@@ -17,6 +17,7 @@ public class Customer {
      */
     @Id
     @GeneratedValue
+    @Column(name="customer_id")
     private Long id;
 
     @Size(min = 3, max = 20, message = "First name must be between 3 and 20 characters")
@@ -37,11 +38,10 @@ public class Customer {
 
     @NotNull // Customer needs an address
     @OneToOne(targetEntity = Address.class, cascade = {CascadeType.ALL}) // Customer can only have one address.
-    @JoinColumn
     private Address address;
 
     // Customer can have many contracts (Can be null)
-    @OneToMany(targetEntity = Contract.class, fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Contract> contracts;
 
 

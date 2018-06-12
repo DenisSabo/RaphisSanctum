@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import vv.assignment.restful.Contract.Contract;
 import vv.assignment.restful.Contract.ContractService;
-import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.Proxy.ContractManagement;
 import vv.assignment.restful.Proxy.LocalRequestsUtil;
 
@@ -38,7 +37,7 @@ public class TestContractsService {
      * Creates a User, that can be used for authentication by the test cases
      */
     @BeforeAll
-    public static void createTestUser() throws ServerNotTunedOnRequestException {
+    public static void createTestUser() {
         LocalRequestsUtil.createTestUser();
     }
 
@@ -53,9 +52,11 @@ public class TestContractsService {
     }
 
 
-
+    /**
+     * re-initialises instances  so tests do not influence each other
+     */
     @BeforeEach
-    public void reinitializeContracts(){
+    public void reinitialisesContracts(){
         healthInsurance = new Contract(KRANKENVERSICHERUNG, new BigDecimal("416.45"));
         kfz = new Contract(KFZ, new BigDecimal("42.42"));
     }

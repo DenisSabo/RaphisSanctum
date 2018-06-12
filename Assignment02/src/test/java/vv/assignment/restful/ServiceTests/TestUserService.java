@@ -1,5 +1,7 @@
 package vv.assignment.restful.ServiceTests;
 
+import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,66 +15,76 @@ import static org.junit.Assert.assertThat;
 
 public class TestUserService {
 
+    /**
+     * Proxy for interacting with user controller
+     */
     UserManagement userProxy = new UserManagement();
+
+    @AfterEach
+    public void deleteAllUsers(){
+        userProxy.deleteAll();
+    }
+
 
     /**
      * Test if creation of new users work
      */
     @Test
     public void createAccount(){
-        RestTemplate restTemplate = new RestTemplate();
-        User user = new User("TestClient", "123", null);
-        /**
-         * Post user to endpoint
-         */
+
+        User user = new User("TestClient", "ValidPassword", null);
+
+        // create user in database
         ResponseEntity<Void> response1 = userProxy.createEntity(user);
 
-        // Test if new user was created successfully
+        // test if new user was created successfully by looking at status code
         assertThat(response1.getStatusCode(), equalTo(HttpStatus.CREATED));
 
-        // now get recently created user
+        // test if created successfully by requesting for user and checking properties
         ResponseEntity<User> userInResponse = userProxy.getEntity(response1.getHeaders().getLocation());
         assertThat(userInResponse.getBody().getUsername(), equalTo("TestClient"));
 
         // Password is encoded with BCrypt, so the BCryptPasswordEncoder have to compare raw and encoded password
-        assert(passwordEncoder().matches("123", userInResponse.getBody().getPassword()));
+        assert(passwordEncoder().matches("ValidPassword", userInResponse.getBody().getPassword()));
         assertThat(userInResponse.getBody().getRole(), equalTo(null));
     }
 
 
     /**
      * Testcase: Somebody tries to create same account two times
-     * Expected Result: Fitting HttpStatus-Code and Header
      */
     @Test
     public void createSameAccounts(){
-        RestTemplate restTemplate = new RestTemplate();
 
-        User user = new User("Account", "123", null);
-        User sameUser = new User("Account", "123", null);
-        /**
-         * Post user to endpoint
-         */
+        User user = new User("Account", "ValidPassword", null);
+        User sameUser = new User("Account", "ValidPassword", null);
+
+        // create user
         ResponseEntity<Void> response1 = userProxy.createEntity(user);
-        /**
-         * Post same user again
-         */
+
+        // create second user that is the same
         ResponseEntity<Void> response2 = userProxy.createEntity(sameUser);
 
         // First request should be successful
         assertThat(response1.getStatusCode(), equalTo(HttpStatus.CREATED));
-        /**
-         * Second response should be a bad request
-         */
+
+        // second request was not successfull
         assertThat(response2.getStatusCode(), equalTo(HttpStatus.CONFLICT));
-        assert(response2.getHeaders().containsKey("ConstraintViolation"));
     }
 
-    // TODO implement delete account
+    @Test
+    public void createInvalidAccount(){
+        // User with password that is to short
+        User user = new User("Account", "1", null);
 
-    // TODO implement change account
+        // try to create user
+        ResponseEntity<Void> response = userProxy.createEntity(user);
 
-    // Later there could be tests which try to create invalid accounts (For example, to short password, etc.)
+        // second request was not successfull
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+    }
+
+
 
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
