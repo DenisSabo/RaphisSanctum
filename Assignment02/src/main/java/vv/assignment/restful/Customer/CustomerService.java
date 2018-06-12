@@ -44,6 +44,8 @@ public class CustomerService {
         }
     }
 
+
+
     /**
      * @return all existing customers in database
      */
@@ -55,6 +57,8 @@ public class CustomerService {
         System.out.println(liste);
         return new ResponseEntity<>(liste, HttpStatus.OK);
     }
+
+
 
     /**
      * Updates an existing customer
@@ -105,6 +109,8 @@ public class CustomerService {
         }
     }
 
+
+
     /**
      * Creates a new customer
      * @param customer that will be passed in the request body
@@ -134,6 +140,8 @@ public class CustomerService {
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
+
+
     /**
      * Endpoint for deleting a customer
      * @param id of customer that has to be deleted
@@ -156,6 +164,8 @@ public class CustomerService {
             throw new CustomerNotFoundException();
         }
     }
+
+
 
     @DeleteMapping(value = "/customers")
     public void deleteCustomers(){

@@ -1,14 +1,14 @@
 package vv.assignment.restful.Proxy;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.Customer.Customer;
-import vv.assignment.restful.Proxy.CRUDable;
 
 import java.net.URI;
 
-import static vv.assignment.restful.Proxy.LocalCallConstants.REST_SERVICE_URI;
-import static vv.assignment.restful.Proxy.LocalCallConstants.getAuthenticatedRestTemplate;
+import static vv.assignment.restful.Proxy.LocalRequestsUtil.REST_SERVICE_URI;
+import static vv.assignment.restful.Proxy.LocalRequestsUtil.getAuthenticatedRestTemplate;
 
 public class CustomerManagement implements CRUDable<Customer> {
 
@@ -43,5 +43,10 @@ public class CustomerManagement implements CRUDable<Customer> {
     @Override
     public void deleteEntity(Long id) {
         restTemplate.delete(REST_SERVICE_URI+"/customer/"+id, Customer.class);
+    }
+
+
+    public void deleteAll() {
+        restTemplate.exchange(REST_SERVICE_URI+"customers", HttpMethod.DELETE, null, Void.class);
     }
 }
