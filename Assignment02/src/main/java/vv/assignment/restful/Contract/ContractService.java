@@ -60,6 +60,9 @@ public class ContractService {
             // Prevent lost update problem (Strategy: First update wins)
             if(oldContract.getVersion() != newContract.getVersion()) throw new ContractAlreadyChangedException();
 
+            // increment version
+            updatedContract.increment();
+
             //Saves altered contract to repo
             try{
                 repo.save(updatedContract);
