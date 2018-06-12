@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * but during that, somebody updated this entity already and so, the new update would lead to a lost of the old one
  * (LOST UPDATE PROBLEM)
  */
-@ResponseStatus(value = HttpStatus.CONFLICT, reason="Somebody changed the customer before you did")
+@ResponseStatus(value = HttpStatus.CONFLICT, reason="Somebody changed this customer before you did")
 public class CustomerAlreadyChangedException extends RuntimeException {
-    // Do nothing -> Annotations do all the work
+    // ...
 }
