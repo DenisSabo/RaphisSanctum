@@ -24,6 +24,9 @@ Address {
     @Size(min = 3, message = "Place must be at least 3 characters long")
     String place;
 
+    @OneToOne(mappedBy = "address")
+    Customer customer;
+
     /**
      * Can be used for generating empty address (for example in a response entity that expects a address as input)
      */
@@ -69,7 +72,13 @@ Address {
         this.place = place;
     }
 
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     // Equals, hashCode and toString
 
