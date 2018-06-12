@@ -24,6 +24,8 @@ public class Contract {
     @Positive // Only positive values, since yearlyFee for customer is profit for this company
     BigDecimal yearlyFee;
 
+    private Integer version = 0;
+
     /**
      * Enum containing all possible values for field kindOfContracts
      */
@@ -92,6 +94,14 @@ public class Contract {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public Integer getVersion(){
+        return this.version;
+    }
+
+    public void increment() {
+        this.version++;
     }
 
 
