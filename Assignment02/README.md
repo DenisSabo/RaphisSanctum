@@ -26,25 +26,25 @@ This is a RESTful server application, that provides basic CRUD interaction with 
 
 1. Successfull get and delete requests return status code **200** (ok)
 
-2. a get request to a non existing resource leads to **204** (no content)
+2. Successfull post and put requests lead to **201** (created)
 
-3. Successfull post and put requests lead to **201** (created)
+3. Sometimes you get a **400** (bad request)
+    - For example: Posting an invalid contract- or customer-entity (look up **json entity** for **contract**/**customer** beneath)
 
-4. Sometimes you get a **400** (bad request)
-    - For example: Posting an invalid kind of contract (look up **json entity** for **contract** beneath)
-
-5. A put or delete request to a non-existing source will lead to **404** (not found) 
+4. A get, put or delete request to a non-existing source will lead to **404** (not found) 
     - Or you do a request to an url that is not specified
 
-6. There are several reasons for a **409** (Conflict)
+5. There are several reasons for a **409** (Conflict)
     - Your update leads to a **lost** of an preceeding **update**
     - You try to **delete** a **resource**, that is **referenced** by an other
     - You try to create user with a **username** that **already exists**
 
-7. Else 500 if an unexpected error occurs. Please report
+6. Else 500 if an unexpected error occurs. Please report
 
 ### Posting/Creating Entities
+
 (Goes into request body)
+
 **Endpoint-URL is beneath entities**
 
 1. JSON for posting to **User**:
@@ -78,7 +78,7 @@ This is a RESTful server application, that provides basic CRUD interaction with 
 ```json
 {
 	"kindOfContract": "Krankenversicherung", // Allowed values: "KRANKENVERSICHERUNG", "HAFTPFLICHT", "RECHTSSCHUTZ", "KFZ"
-	"yearlyFee": "49", 
+	"yearlyFee": "42.01", 
 }
 ```
 
@@ -145,7 +145,7 @@ This is a RESTful server application, that provides basic CRUD interaction with 
 
 #### Contracts
 
-1. Get Cpntract by ID 
+1. Get Contract by ID 
     - **GET**
     ```
     https://localhost:8443/contract/{id}
@@ -154,7 +154,7 @@ This is a RESTful server application, that provides basic CRUD interaction with 
 2. Get all Contracts
     - **GET**
     ```
-    https://localhost:8443/contract/{id}
+    https://localhost:8443/contracts
     ```
 
 3. Create new Contract
