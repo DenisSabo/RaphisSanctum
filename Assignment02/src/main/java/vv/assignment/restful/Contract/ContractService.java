@@ -8,97 +8,155 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.util.UriComponentsBuilder;
+import vv.assignment.restful.Contract.ContractExceptions.ContractAlreadyChangedException;
+import vv.assignment.restful.Contract.ContractExceptions.ContractAlreadyExistsException;
+import vv.assignment.restful.Contract.ContractExceptions.ContractNotFoundException;
+import vv.assignment.restful.Contract.ContractExceptions.ContractReferencedByCustomerException;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-import java.io.IOException;
 import java.util.Optional;
+
 
 @ComponentScan("ContractRepository")
 @RestController
 public class ContractService {
 
+    /**
+     * Operations on database will be made with this repo
+     */
     @Autowired
     private ContractRepository repo;
 
-    // TODO Implement Search
 
-    // Update existing Contract
+
+    /**
+     * Updates existing contract
+     * @param id of contract that has to be updated
+     * @param newContract that will update contract with defined id
+     * @returns ResponseEntity<Contract> that contains updated contract
+     */
     @PutMapping(value = "/contract/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Contract> changeContract(
             @PathVariable String id, @RequestBody Contract newContract) {
+
         // Find Contract by ID
         Optional<Contract> maybeOldContract = repo.findById(Long.parseLong(id));
-        if(maybeOldContract.isPresent()){
-            Contract oldContract = maybeOldContract.get();
-            oldContract.setKindOfContract(newContract.getKindOfContract());
-            oldContract.setYearlyFee(newContract.getYearlyFee());
-            //Saves altered contract to repo
-            repo.save(oldContract);
-            return new ResponseEntity<Contract> (oldContract, HttpStatus.OK);
+
+        if(!maybeOldContract.isPresent()) {
+            throw new ContractNotFoundException();
         }
         else{
-            // Customer was not found -> return empty customer
-            return new ResponseEntity<Contract> (new Contract(), HttpStatus.NOT_MODIFIED);
+
+            Contract oldContract = maybeOldContract.get();
+
+            // Instance that will contain the updated data
+            Contract updatedContract = oldContract;
+
+            // Perform set of changes
+            updatedContract.setKindOfContract(newContract.getKindOfContract());
+            updatedContract.setYearlyFee(newContract.getYearlyFee());
+
+            // Prevent lost update problem (Strategy: First update wins)
+            if(oldContract.getVersion() != newContract.getVersion()) throw new ContractAlreadyChangedException();
+
+            //Saves altered contract to repo
+            try{
+                repo.save(updatedContract);
+            }
+            catch(DataIntegrityViolationException ex){
+                // it could be, that this changed contract will be the same as one, that is already existing in db
+                throw new ContractAlreadyExistsException();
+            }
+
+            return new ResponseEntity<Contract> (updatedContract, HttpStatus.OK);
         }
     }
 
+
+
+    /**
+     * Gets contract by id
+     * @param id of contract
+     * @returns a ResponseEntity<Contract> containing the requested contract
+     */
     @GetMapping(value="/contract/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Contract> getContract(@PathVariable String id){
+
         Optional<Contract> contract = repo.findById(Long.parseLong(id));
+
         //  Returns Customer or empty customer
-        if(contract.isPresent()){
-            return new ResponseEntity<Contract>(contract.get(), HttpStatus.OK);
+        if(!contract.isPresent()) {
+            throw new ContractNotFoundException();
         }
         else{
-            return new ResponseEntity<Contract>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<Contract>(contract.get(), HttpStatus.OK);
         }
     }
 
-    // Create new Customer
+
+
+    /**
+     * Creates new contract
+     * @param contract that will be saved in database
+     * @param ucBuilder
+     * @returns ResponseEntity<Void> with location to created resource
+     */
     @PostMapping(value = "/contract", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void>  newContract(@RequestBody Contract contract, UriComponentsBuilder ucBuilder) {
-        repo.save(contract);
+        try{
+            repo.save(contract);
+        }
+        catch(DataIntegrityViolationException ex){
+            throw new ContractAlreadyExistsException();
+        }
+
         HttpHeaders headers = new HttpHeaders();
+
         // Sets a header with direct path to created Contract
         headers.setLocation(ucBuilder.path("/contract/{id}").buildAndExpand(contract.getId()).toUri());
+
         // Sends header to client
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
-    // Delete Contract by ID
+
+
+    /**
+     * Deletes contract by ID
+     * @param id of contract that has to be deleted
+     * @returns a ResponseEntity<Contract> containing the old contract in response body
+     */
     @DeleteMapping(value = "/contract/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    // TODO Generic ist jetzt eine Wildcard
-    public ResponseEntity<?> deleteContract(@PathVariable String id){
+    public ResponseEntity<Contract> deleteContract(@PathVariable String id){
+
         Optional<Contract> maybeOldContract = repo.findById(Long.parseLong(id));
-        // If Contract was found, try to delete it
-        if(maybeOldContract.isPresent()){
+
+        if(!maybeOldContract.isPresent()) {
+            throw new ContractNotFoundException();
+        }
+        else{
             Contract oldContract = maybeOldContract.get();
-            // Throws DataIntegrityException sometimes, that will be catched by the handler
+
             try {
                 repo.delete(oldContract);
             }
             catch(DataIntegrityViolationException ex){
-                // TODO funktioniert eigentlich nicht
-                return handleDataIntegrityViolationErrorResponse(ex);
+                // You cannot delete a contract if it is still in use by a Customer
+                throw new ContractReferencedByCustomerException();
             }
+
             return new ResponseEntity<Contract> (oldContract, HttpStatus.OK);
-        }
-        else{
-            // Contract was not found -> return empty Contract
-            return new ResponseEntity<Contract> (new Contract(), HttpStatus.OK);
         }
     }
 
-    @ExceptionHandler({ DataIntegrityViolationException.class})
-    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-    @ResponseBody
-    public static ResponseEntity<String> handleDataIntegrityViolationErrorResponse(DataIntegrityViolationException exception) {
-        return new ResponseEntity<String>("You can not delete this contract, because" +
-                "it is still used by a customer", HttpStatus.CONFLICT);
+
+
+    /**
+     * Deletes all contracts in database
+     */
+    @DeleteMapping(value = "/contracts")
+    public void deleteContracts() {
+        repo.deleteAll();
     }
 }
