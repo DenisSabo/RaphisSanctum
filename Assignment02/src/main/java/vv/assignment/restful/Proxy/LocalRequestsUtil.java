@@ -13,7 +13,7 @@ public interface LocalRequestsUtil {
     /**
      * URL to server
      */
-    public static final String REST_SERVICE_URI = "http://localhost:8080";
+    public static final String REST_SERVICE_URI = "https://localhost:8443";
     RestTemplate restTemplate = new RestTemplate();
 
 

@@ -175,6 +175,9 @@ public class CustomerService {
 
 
 
+    /**
+     * Deletes all existing customers in database
+     */
     @DeleteMapping(value = "/customers")
     public void deleteCustomers(){
         repo.deleteAll();
