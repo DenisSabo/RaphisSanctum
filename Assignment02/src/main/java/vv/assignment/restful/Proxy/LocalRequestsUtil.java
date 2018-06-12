@@ -9,11 +9,11 @@ import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.user.User;
 
-public interface LocalCallConstants {
+public interface LocalRequestsUtil {
     /**
      * URL to server
      */
-    public static final String REST_SERVICE_URI = "https://localhost:8443";
+    public static final String REST_SERVICE_URI = "http://localhost:8080";
     RestTemplate restTemplate = new RestTemplate();
 
     /**
@@ -23,6 +23,7 @@ public interface LocalCallConstants {
     public static final String username = "TESTRUNNER";
     public static final String password = "Pass123";
     public static final String role = null;
+
 
     public static String plainCredentials=username + ":" + password;
     public static final String base64Credentials = new String(Base64.encodeBase64(plainCredentials.getBytes()));
