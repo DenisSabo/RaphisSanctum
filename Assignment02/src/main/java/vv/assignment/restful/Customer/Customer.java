@@ -33,10 +33,11 @@ public class Customer {
      * The entity has a version number that starts at zero and will be incremented, if entity will be updated.
      * With the help of this field, the lost update problem can be solved (See CustomerService.java -> PutMapping)
      */
-    private Integer versionnumber = 0;
+    private Integer version = 0;
 
     @NotNull // Customer needs an address
     @OneToOne(targetEntity = Address.class, cascade = {CascadeType.ALL}) // Customer can only have one address.
+    @JoinColumn
     private Address address;
 
     // Customer can have many contracts (Can be null)
@@ -81,7 +82,7 @@ public class Customer {
      * Increments version number of entity when entity properties got changed
      */
     protected void increment(){
-        this.versionnumber++;
+        this.version++;
     }
 
 
@@ -136,8 +137,24 @@ public class Customer {
         this.contracts = contracts;
     }
 
-    public Integer getVersionnumber() {
-        return versionnumber;
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     *
+     * @param customer that updates this customer
+     */
+    public void setCustomer(Customer customer) {
+        this.firstname = customer.getFirstname();
+        this.lastname = customer.getLastname();
+        this.dateOfBirth = customer.getDateOfBirth();
+        this.address = customer.getAddress();
+        this.contracts = customer.getContracts();
     }
 
 

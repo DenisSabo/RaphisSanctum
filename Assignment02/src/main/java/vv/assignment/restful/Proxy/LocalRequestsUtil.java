@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import vv.assignment.restful.MyExceptions.ServerNotTunedOnRequestException;
 import vv.assignment.restful.user.User;
@@ -15,6 +16,8 @@ public interface LocalRequestsUtil {
      */
     public static final String REST_SERVICE_URI = "http://localhost:8080";
     RestTemplate restTemplate = new RestTemplate();
+
+
 
     /**
      *  User credentials for Account, that will be used for making requests to secured endpoints
@@ -39,6 +42,12 @@ public interface LocalRequestsUtil {
     }
 
     public static RestTemplate getAuthenticatedRestTemplate(){
+        // disables the default error handling in tests
+        restTemplate.setErrorHandler(new DefaultResponseErrorHandler(){
+            protected boolean hasError(HttpStatus statusCode) {
+                return false;
+            }});
+
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
         return restTemplate;
     }
