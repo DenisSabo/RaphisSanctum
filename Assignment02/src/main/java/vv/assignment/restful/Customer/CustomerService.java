@@ -93,7 +93,9 @@ public class CustomerService {
 
             // Initializes old customer with new data (except the id and version field)
             updatedCustomer.setCustomer(newCustomer);
-            updatedCustomer.increment(); // increments version number
+
+            // increment version
+            updatedCustomer.increment();
 
             try {
                 repo.save(updatedCustomer);
