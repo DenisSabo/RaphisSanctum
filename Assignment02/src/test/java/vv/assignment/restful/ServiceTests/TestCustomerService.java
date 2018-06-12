@@ -67,7 +67,7 @@ public class TestCustomerService {
      */
     @AfterEach
     public void deleteAllCustomers() {
-        restTemplate.exchange(REST_SERVICE_URI+"customers", HttpMethod.DELETE, null, Void.class);
+        proxy.deleteAll();
     }
 
     /**
@@ -162,11 +162,9 @@ public class TestCustomerService {
         // Two clients gain the same Customer
         ResponseEntity<Customer> client1Response = proxy.getEntity(postResponse.getHeaders().getLocation());
         Customer customer1 = client1Response.getBody();
-        System.out.println("Customer1 version: " + customer1.getVersion());
 
         ResponseEntity<Customer> client2Response = proxy.getEntity(postResponse.getHeaders().getLocation());
         Customer customer2 = client2Response.getBody();
-        System.out.println("Customer2 version: " + customer2.getVersion());
 
         // The id of the resource is the same for both customers (same resource)
         assertThat(customer1.getId(), equalTo(customer2.getId()));
@@ -183,9 +181,6 @@ public class TestCustomerService {
         // The version number of customer1 and the customer in the database are the same
         // After the entity was updated, the version number of the resource got incremented
         proxy.updateEntity(resourceId.toString(), customer1); // This update will be executed
-
-        ResponseEntity<Customer> updatedCustomere = proxy.getEntity(postResponse.getHeaders().getLocation());
-        System.out.println("Updated customer version: " + updatedCustomere.getBody().getVersion());
 
         // the version number of customer2 and the customer in the database are not the same
         // because the database-customer's version number got incremented after first update
