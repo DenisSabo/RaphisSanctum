@@ -3,12 +3,16 @@ import com.google.gson.Gson;
 import javax.jms.*;
 import javax.naming.NamingException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
-
+import java.util.concurrent.*;
 
 
 // TODO Use executor service
+// TODO alles nach todos absuchen
+// TODO Alarm-Zeugs einbauen
 public class TelematicsUnit implements Runnable{
 
     /**
@@ -148,45 +152,75 @@ public class TelematicsUnit implements Runnable{
     }
 
 
+    private static final Session session = JMSManagement.getSession();
+    private static final Queue tripdata = JMSManagement.getQueueTripData();
+    private static MessageProducer producer;
+
     /**
      * Sends message to ActiveMQ-server. (http://localhost:8161/admin/index.jsp)
      * @param telMessage containing the id of telematics, the driven distance, location and a timestamp
      */
     private void sendMessage(TelematicMessage telMessage) throws JMSException, NamingException {
-        // JMS + ActiveMQ initialization
-         Session session = JMSManagement.getSession();
-
-        // queue that will contain messages of the telematics units
-        Queue tripData = session.createQueue("tripdata");
 
         // producer handles sending of messages
-        MessageProducer producer = session.createProducer(tripData);
+        producer = session.createProducer(tripdata);
         producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 
-        Gson gson = new Gson();
-        String json = gson.toJson(telMessage);
+        // send json as text
+        String json = TelematicMessage.serialize(telMessage);
         TextMessage message = session.createTextMessage(json);
         producer.send(message);
-
-        // TODO gerade ein wenig blöd, da bei jeder neuen Message eine neue Session erstellt und wieder geschlossen wird
-        producer.close(); session.close();
     }
 
 
 
 
     public static void main(String[] args) throws NamingException, JMSException, IOException {
-        // Filter will send messages from trip data to topic "distributor"
-        Filter filter = new Filter();
-        filter.initialize();
+        System.out.println("How many Telematics you want to start? Type in a number: ");
+        String input = listenToUserInput();
 
-        // logbook will get messages from topic distributor and write those to hard drive
-        DriversLogbook logbook = new DriversLogbook();
-        logbook.initialize(); // JMS settings + listener for topic
+        Integer unitsToStart = Integer.parseInt(input);
+
+        /**
+        ExecutorService executorService =
+                new ThreadPoolExecutor(unitsToStart, 20, 999999999999999999L, TimeUnit.MILLISECONDS,
+                        new LinkedBlockingQueue<Runnable>());
+
+        List<Callable<TelematicsUnit>> unitsToBeStarted = new ArrayList<>();
+         */
 
         // Run message producer in own thread
         Thread thread = new Thread(new TelematicsUnit(new Gps(47.8674365, 12.10730650000005), 5));
         thread.start();
     }
+
+    // TODO
+    public static final char ENTER = '\n';
+    public static final int EOF = -1;
+
+    public static String listenToUserInput(){
+        StringBuffer buffer = new StringBuffer();
+        // Listening to users input
+        InputStream is = System.in;
+
+        while(true)
+        {
+            try {
+                int c = 0;
+                while ((c = is.read()) > EOF) {
+                    // User input will be added to the buffer
+                    if (c == ENTER) break;
+                    buffer.append((char) c);
+                }
+                // convert buffer to string
+                String userinput = buffer.toString();
+                return userinput;
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
 

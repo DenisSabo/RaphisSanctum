@@ -1,7 +1,7 @@
 import Telematics.DrivenDistance;
+import com.sun.xml.internal.ws.encoding.soap.DeserializationException;
 
 import javax.jms.*;
-import javax.naming.NamingException;
 import java.lang.IllegalStateException;
 import java.util.*;
 
@@ -17,7 +17,7 @@ public class DataWarehouse implements MessageListener{
      */
     public class PreStructure{
         // Date will be saved too, so the possibility of bugs is reduced
-        TreeMap<UUID, HashMap<Date, LinkedList<TelematicMessage>>> cache;
+        TreeMap<UUID, HashMap<Date, LinkedList<TelematicMessage>>> cache = new TreeMap<>();
 
         /**
          * Will return a list of messages IF all messages for one hour of a specific date is in cache already
@@ -31,7 +31,7 @@ public class DataWarehouse implements MessageListener{
          */
         public Optional<List<TelematicMessage>> getMessagesOfFullHour(UUID id, Date date){
             // list that will be returned, if there are enough messages for one hour
-            LinkedList<TelematicMessage> list = null;
+            LinkedList<TelematicMessage> list = new LinkedList<>();
 
             // get messages for one specific id and date
             LinkedList<TelematicMessage> messages = cache.get(id).get(date);
@@ -112,28 +112,36 @@ public class DataWarehouse implements MessageListener{
     PreStructure preStructure = new PreStructure();
 
 
-    // JMS + MQ Gedöns
-    private Connection connection; private Session session;
-    Topic distributor; MessageConsumer durableTopicConsumer;
 
-    public void initialize() throws JMSException, NamingException {
-        connection = JMSManagement.getConnection();
-
-        // identifiable client for durable subscriber
-        connection.setClientID(this.getClass().getName());
-        connection.start();
-
-        session = connection.createSession(false,
-                Session.AUTO_ACKNOWLEDGE);
-
-        // Data warehouse will read messages from topic "distributor"
-        distributor = JMSManagement.getTopicDistributor();
-
-        // Durable so data in data-structure will be complete
-        durableTopicConsumer = session.createDurableSubscriber(distributor, this.getClass().getName());
-
-        durableTopicConsumer.setMessageListener(this);
+    public static void main(String[] args) {
+        DataWarehouse warehouse = new DataWarehouse();
+        warehouse.initialize();
     }
+
+
+    // JMS
+    private static final Connection connection = JMSManagement.getConnection();
+    private static final Topic distributor = JMSManagement.getTopicDistributor();
+    private static Session session;
+    private static MessageConsumer durableTopicConsumer;
+
+
+    public void initialize(){
+        try{
+            // identifiable client for durable subscriber
+            connection.setClientID(this.getClass().getName());
+            connection.start();
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            // Durable so data in data-structure will be complete
+            durableTopicConsumer = session.createDurableSubscriber(distributor, this.getClass().getName());
+
+            durableTopicConsumer.setMessageListener(this);
+        } catch(JMSException ex){
+            ex.printStackTrace();
+        }
+
+    }
+
 
     /**
      * Message listener, which will add messages to pre-structure first. Then if there are all messages
@@ -152,7 +160,7 @@ public class DataWarehouse implements MessageListener{
             e.printStackTrace();
             return;
         }
-
+        if(deserializedMessage == null) throw new DeserializationException("Unable to deserialize Telematics Message");
         // add message to pre-structure
         preStructure.addMessage(deserializedMessage);
 

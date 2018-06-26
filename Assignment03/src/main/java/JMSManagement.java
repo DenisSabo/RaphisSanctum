@@ -6,8 +6,6 @@ import java.util.Properties;
 
 
 public class JMSManagement {
-    // Queues and topics will be created here, so there is no need to create them in each class
-
     /**
      * Queue trip data
      */
@@ -17,8 +15,6 @@ public class JMSManagement {
         try {
             tripData = getSession().createQueue("tripdata");
         } catch (JMSException e) {
-            e.printStackTrace();
-        } catch (NamingException e) {
             e.printStackTrace();
         }
     }
@@ -33,28 +29,37 @@ public class JMSManagement {
             distributor = getSession().createTopic("distributor");
         } catch (JMSException e) {
             e.printStackTrace();
-        } catch (NamingException e) {
-            e.printStackTrace();
         }
     }
 
-    public JMSManagement() throws NamingException, JMSException {
+    public JMSManagement(){
     }
 
-    public static Session getSession() throws NamingException, JMSException {
+    public static Session getSession(){
         // JMS + ActiveMQ initialisierung
         Properties props = new Properties();
         props.setProperty(Context.INITIAL_CONTEXT_FACTORY,
                 "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
         props.setProperty(Context.PROVIDER_URL, "tcp://localhost:61616");
 
-        Context naming = new InitialContext(props);
-        ConnectionFactory connectionFactory = (ConnectionFactory) naming.lookup("ConnectionFactory");
+        Context naming = null;
+        ConnectionFactory connectionFactory = null;
+        try {
+            naming = new InitialContext(props);
+            connectionFactory = (ConnectionFactory) naming.lookup("ConnectionFactory");
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
 
-        Connection connection = connectionFactory.createConnection();
-
-        connection.start();
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Connection connection = null;
+        Session session = null;
+        try {
+            connection = connectionFactory.createConnection();
+            connection.start();
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
 
         return session;
 
@@ -62,17 +67,28 @@ public class JMSManagement {
         // connection.stop(); connection.close();
     }
 
-    public static Connection getConnection() throws JMSException, NamingException {
+    public static Connection getConnection(){
         // JMS + ActiveMQ initialisierung
         Properties props = new Properties();
         props.setProperty(Context.INITIAL_CONTEXT_FACTORY,
                 "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
         props.setProperty(Context.PROVIDER_URL, "tcp://localhost:61616");
 
-        Context naming = new InitialContext(props);
-        ConnectionFactory connectionFactory = (ConnectionFactory) naming.lookup("ConnectionFactory");
+        Context naming = null;
+        ConnectionFactory connectionFactory = null;
+        try {
+            naming = new InitialContext(props);
+            connectionFactory = (ConnectionFactory) naming.lookup("ConnectionFactory");
+        } catch (NamingException e) {
+            e.printStackTrace();
+        }
 
-        Connection connection =  connectionFactory.createConnection();
+        Connection connection = null;
+        try {
+            connection = connectionFactory.createConnection();
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
 
         return connection;
     }

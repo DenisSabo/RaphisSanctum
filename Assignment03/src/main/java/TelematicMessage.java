@@ -1,4 +1,3 @@
-
 import com.google.gson.Gson;
 
 import java.text.DateFormat;
@@ -33,7 +32,7 @@ public class TelematicMessage{
     /**
      * Can be used to convert date to string and vice versa
      */
-    private DateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm.ss.SSS");
+    private static transient DateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm.ss.SSS");
 
     public TelematicMessage(UUID telematicsId, Long drivenDistanceMeters, Gps coordinates) {
         this.timestamp = format.format(System.currentTimeMillis());
@@ -45,7 +44,7 @@ public class TelematicMessage{
     /**
      * @returns used date format for messages
      */
-    public DateFormat getFormat() {
+    public static DateFormat getFormat() {
         return format;
     }
 
@@ -59,17 +58,18 @@ public class TelematicMessage{
     }
 
     /**
-     * Serializes instance to JSON
+     *
+     * @param message that will be converted to JSON
      */
-    public String toJson(){
+    public static String serialize(TelematicMessage message){
         Gson gson = new Gson();
-        return gson.toJson(this);
+        return gson.toJson(message, TelematicMessage.class);
     }
 
     public Date getTimestampAsDate() {
         Date date = null;
         try {
-            date = format.parse(timestamp);
+            date = getFormat().parse(timestamp);
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -77,7 +77,7 @@ public class TelematicMessage{
     }
 
     public Calendar getTimestampAsCalender() {
-        Calendar cal = null;
+        Calendar cal = Calendar.getInstance();
         try {
             cal.setTime(getFormat().parse(timestamp));
         } catch (ParseException e) {
@@ -88,5 +88,9 @@ public class TelematicMessage{
 
     public Integer getHourOfDayOfCreation() {
         return getTimestampAsCalender().get(Calendar.HOUR_OF_DAY);
+    }
+
+    public String getTimestamp() {
+        return timestamp;
     }
 }

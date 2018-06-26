@@ -1,35 +1,37 @@
-import com.google.gson.Gson;
-
 import javax.jms.*;
-import javax.naming.NamingException;
 
 
 /**
  * intermediate layer between telematics unit and topic "distributor", so some messages can be filtered
  */
 public class Filter implements MessageListener{
-    private Session session;
-    private Queue tripData; private Topic distributor;
-    MessageConsumer consumer; MessageProducer producer;
 
-    public void initialize() throws JMSException, NamingException{
-        session = JMSManagement.getSession();
+    // JMS
+    private static final Session session = JMSManagement.getSession();
+    private static final Queue tripData = JMSManagement.getQueueTripData();
+    private static final Topic distributor = JMSManagement.getTopicDistributor();
+    private static MessageConsumer consumer; private static MessageProducer producer;
 
-        // will read messages out of queue trip data
-        tripData = session.createQueue("tripdata");
-        consumer = session.createConsumer(tripData);
 
-        // Message listener for queue trip data
-        consumer.setMessageListener(this);
+    public void initialize(){
+        try{
+            // will read messages out of queue trip data
+            consumer = session.createConsumer(tripData);
 
-        // will write the messages that have been read, into a topic
-        distributor = session.createTopic("distributor");
-        producer = session.createProducer(distributor);
-        producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            // Message listener for queue trip data
+            consumer.setMessageListener(this);
+
+            producer = session.createProducer(distributor);
+            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+
+        } catch(JMSException ex){
+            ex.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
-
+        Filter filter = new Filter();
+        filter.initialize();
     }
 
     @Override
@@ -47,7 +49,7 @@ public class Filter implements MessageListener{
         // TODO if alarm write into alarm queue
 
         // else write into topic "distributor"
-        String json = telMessage.toJson();
+        String json = TelematicMessage.serialize(telMessage);
         try {
             // writes message into topic
             TextMessage textMessage = session.createTextMessage(json);

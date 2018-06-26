@@ -1,38 +1,47 @@
+import com.google.gson.Gson;
 import com.sun.xml.internal.ws.encoding.soap.DeserializationException;
 
 import javax.jms.*;
-import javax.naming.NamingException;
 import java.io.*;
 import java.util.*;
 
 public class DriversLogbook implements MessageListener{
-    static private String listsDirectory = "C://telematicsLists/";
+    // Directory to which the listOfMessagesForTelematicsUnit.txt files will be saved
+    private static final String listsDirectory = "C://telematicsLists/";
+    private static final Gson gson = new Gson();
+    // JMS-stuff
+    private static final Connection connection = JMSManagement.getConnection();
+    private static final Topic distributor = JMSManagement.getTopicDistributor();
+    private static Session session;
+    private static MessageConsumer durableTopicConsumer;
 
-    // Each telematics unit will have it's own list with messages
-    static HashMap<UUID, List<TelematicMessage>> listsForTelematics = new HashMap<>();
+    // Actually lists are saved locally on hard drive, but this will serve as cache for doing operations on this lists
+    static private HashMap<UUID, List<TelematicMessage>> listsForTelematics = new HashMap<>();
 
-    private Connection connection; private Session session;
-    Topic distributor; MessageConsumer durableTopicConsumer;
+
+    public static void main(String[] args) {
+        DriversLogbook logbook = new DriversLogbook();
+        logbook.initialize();
+    }
 
 
     /**
-     * Sets connection, session, and consumer settings for JMS
+     * Will subscribe an instance of this class as durable subscriber to topic "Distributor"
      */
-    public void initialize() throws JMSException, NamingException {
-        connection = JMSManagement.getConnection();
+    public void initialize(){
+        try{
+            connection.setClientID(this.getClass().getName());
+            connection.start();
 
-        // Client identifizierbar machen
-        connection.setClientID(this.getClass().getName());
-        connection.start();
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            // Driver's logbook will read ALL messages from topic "distributor"
+            durableTopicConsumer = session.createDurableSubscriber(distributor, this.getClass().getName());
 
-        session = connection.createSession(false,
-                Session.AUTO_ACKNOWLEDGE);
+            durableTopicConsumer.setMessageListener(this);
+        } catch(JMSException ex){
+            ex.printStackTrace();
+        }
 
-        // Driver's logbook will read messages from topic "distributor"
-        distributor = JMSManagement.getTopicDistributor();
-        durableTopicConsumer = session.createDurableSubscriber(distributor, this.getClass().getName());
-
-        durableTopicConsumer.setMessageListener(this);
 
         // Create directory which will hold files containing the list of messages
         new File(listsDirectory).mkdirs();
@@ -51,7 +60,7 @@ public class DriversLogbook implements MessageListener{
         TelematicMessage deserializedMessage = null;
         try {
             deserializedMessage =
-                    Constants.gson.fromJson(filteredTelematicsMessagesJson.getText(), TelematicMessage.class);
+                    TelematicMessage.deserialize(filteredTelematicsMessagesJson.getText());
 
         } catch (JMSException e) {
             e.printStackTrace();
@@ -98,7 +107,7 @@ public class DriversLogbook implements MessageListener{
         // serialize list with first message in it
         List<TelematicMessage> messages = new LinkedList<TelematicMessage>();
         messages.add(message);
-        String jsonList = Constants.gson.toJson(messages);
+        String jsonList = gson.toJson(messages);
 
         // save list to drive. Name of file is UUID of telematics, which produced this message.
         try {
@@ -131,13 +140,13 @@ public class DriversLogbook implements MessageListener{
             reader.close();
 
             // deserialize
-            List<TelematicMessage> list = Constants.gson.fromJson(jsonList, List.class);
+            List<TelematicMessage> list = gson.fromJson(jsonList, List.class);
 
             // append message to existing list
             list.add(message);
 
             // serialize list back to json
-            String listAsJson = Constants.gson.toJson(list);
+            String listAsJson = gson.toJson(list);
 
             // Write updated list back to file
             File file = new File(pathToFile);

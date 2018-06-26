@@ -31,12 +31,11 @@ class Gps{
             return VALUES.get(RANDOM.nextInt(SIZE));
         }
 
-        // Chance to get the preferred direction is at 82 %
-        // R: pbinom(6, 6, 0.25) - pbinom(0, 6, 0.25) = 0.8220215
+
 
         /**
          * probability experiment must be repeated 6 times so chance is at 82%
-         * Look up binomial distribution
+         * Look up binomial distribution (R: pbinom(6, 6, 0.25) - pbinom(0, 6, 0.25) = 0.8220215)
          * @param preferredDirection 82,2% Chance that this direction will be returned
          */
         public static Direction weightedRandomDirection(Direction preferredDirection) {
