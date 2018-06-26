@@ -1,8 +1,6 @@
 import com.sun.xml.internal.ws.encoding.soap.DeserializationException;
 
 import javax.jms.*;
-import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.*;
 import java.util.*;

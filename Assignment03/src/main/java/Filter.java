@@ -39,7 +39,7 @@ public class Filter implements MessageListener{
         // TODO check if message is an alarm message or may be invalid
         TelematicMessage telMessage = null;
         try {
-            telMessage = Constants.gson.fromJson(jsonTelematicsMessage.getText(), TelematicMessage.class);
+            telMessage = TelematicMessage.deserialize(jsonTelematicsMessage.getText());
         } catch (JMSException e) {
             e.printStackTrace();
         }
@@ -47,7 +47,7 @@ public class Filter implements MessageListener{
         // TODO if alarm write into alarm queue
 
         // else write into topic "distributor"
-        String json = Constants.gson.toJson(telMessage);
+        String json = telMessage.toJson();
         try {
             // writes message into topic
             TextMessage textMessage = session.createTextMessage(json);
