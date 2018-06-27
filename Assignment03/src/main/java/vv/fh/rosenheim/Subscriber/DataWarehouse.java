@@ -156,7 +156,7 @@ public class DataWarehouse implements MessageListener, Runnable{
             System.out.println("Unit: " + id);
             Set<Calendar> allDatesOfId = dataStructure.get(id).keySet();
             for(Calendar date : allDatesOfId){
-                System.out.println("On date: " + date);
+                System.out.println("On date: " + date.getTime());
                 DrivenDistance[] distancesForDate = dataStructure.get(id).get(date);
                 for(int i = 1; i < 25; i++){
                     if(distancesForDate[i - 1] == null){
