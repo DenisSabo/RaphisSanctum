@@ -1,4 +1,7 @@
+package vv.fh.rosenheim.Telematics.Producer.Produces;
+
 import com.google.gson.Gson;
+import vv.fh.rosenheim.Transport.Gps;
 
 import java.util.UUID;
 
@@ -27,5 +30,13 @@ public class TelematicAlarm extends TelematicMessage {
     public static String serialize(TelematicAlarm message){
         Gson gson = new Gson();
         return gson.toJson(message, TelematicAlarm.class);
+    }
+
+    public String getAlarmReason() {
+        return alarmReason;
+    }
+
+    public void setAlarmReason(String alarmReason) {
+        this.alarmReason = alarmReason;
     }
 }

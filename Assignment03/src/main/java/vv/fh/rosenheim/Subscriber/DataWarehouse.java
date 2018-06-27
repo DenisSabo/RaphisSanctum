@@ -1,14 +1,20 @@
-import Telematics.DrivenDistance;
+package vv.fh.rosenheim.Subscriber;
+
+import vv.fh.rosenheim.HelpingClasses.PrettyPrinter;
+import vv.fh.rosenheim.HelpingClasses.JMSManagement;
+import vv.fh.rosenheim.Telematics.Producer.Produces.TelematicMessage;
+import vv.fh.rosenheim.Transport.DrivenDistance;
 import com.sun.xml.internal.ws.encoding.soap.DeserializationException;
 
 import javax.jms.*;
 import java.util.*;
 
-
-/**
- * Saves driven distance of a telematics unit in an hour of a specific day (date)
- */
 public class DataWarehouse implements MessageListener, Runnable{
+
+    /**
+     * This structure will save the driven distance of a telematics in one hour (of a specific date)
+     */
+    TreeMap<UUID, TreeMap<Calendar, DrivenDistance[]>> dataStructure = new TreeMap<>();
 
     // JMS
     private static final Connection connection = JMSManagement.getConnection();
@@ -46,15 +52,9 @@ public class DataWarehouse implements MessageListener, Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            printWarehouseData();
+            printDataWareHouse();
         }
     }
-
-    /**
-     * This structure will save the driven distance of a telematics in one hour (of a specific date)
-     */
-    TreeMap<UUID, TreeMap<Date, DrivenDistance[]>> dataStructure = new TreeMap<>();
-
 
 
     public static void main(String[] args) {
@@ -87,8 +87,8 @@ public class DataWarehouse implements MessageListener, Runnable{
             return;
         }
         if(deserializedMessage == null) throw new DeserializationException("Unable to deserialize Telematics Message");
-        addDrivenDistance(deserializedMessage.telematicsId, deserializedMessage.getTimestampAsDate(),
-                deserializedMessage.getTimestampAsCalender().get(Calendar.HOUR_OF_DAY), deserializedMessage.drivenDistanceMeters);
+        addDrivenDistance(deserializedMessage.getTelematicsId(), deserializedMessage.getTimestampAsCalender(),
+                deserializedMessage.getTimestampAsCalender().get(Calendar.HOUR_OF_DAY), deserializedMessage.getDrivenDistanceMeters());
 
     }
 
@@ -97,36 +97,37 @@ public class DataWarehouse implements MessageListener, Runnable{
      * For example: Truck drove 50.000 meters from 17.00 - 17.50 at 27.06.2018
      * The id of his telematics -> Date: 27.06.2018 -> DrivenDistances[18] = 50.000 meters
      */
-    private void addDrivenDistance(UUID telematicsId, Date timestampAsDate, int hour, Long drivenDistance) {
+    private void addDrivenDistance(UUID telematicsId, Calendar timestampAsCalendar, int hour, Long drivenDistance) {
         // must be 0 or else data-structure will have own node (key) in TreeMap for each Message,
         // because 27.06.2018 18:00:00 is different from 27.06.2018 18:00:01, but we want
         // only one node for a specific date -> Time does not matter at this point, since hour is passed anyways
-        timestampAsDate.setHours(00);
-        timestampAsDate.setMinutes(00);
-        timestampAsDate.setSeconds(00);
+        timestampAsCalendar.set(Calendar.HOUR_OF_DAY, 00);
+        timestampAsCalendar.set(Calendar.MINUTE, 00);
+        timestampAsCalendar.set(Calendar.SECOND, 00);
+        timestampAsCalendar.set(Calendar.MILLISECOND, 000);
 
         if(!dataStructure.containsKey(telematicsId)){
             // completly new id
             DrivenDistance[] arr = new DrivenDistance[24];
             arr[hour] = new DrivenDistance(drivenDistance);
-            TreeMap<Date, DrivenDistance[]> map = new TreeMap<>();
-            map.put(timestampAsDate, arr);
+            TreeMap<Calendar, DrivenDistance[]> map = new TreeMap<>();
+            map.put(timestampAsCalendar, arr);
             // complete new entry is necessary
             dataStructure.put(telematicsId, map);
         }
-        else if(!(dataStructure.get(telematicsId).containsKey(timestampAsDate))){
+        else if(!dataStructure.get(telematicsId).containsKey(timestampAsCalendar)){
             // new date
             DrivenDistance[] arr = new DrivenDistance[24];
             arr[hour] = new DrivenDistance(drivenDistance);
-            dataStructure.get(telematicsId).put(timestampAsDate, arr);
+            dataStructure.get(telematicsId).put(timestampAsCalendar, arr);
         }
-        else if(dataStructure.get(telematicsId).get(timestampAsDate)[hour] == null){
+        else if(dataStructure.get(telematicsId).get(timestampAsCalendar)[hour] == null){
             // new hour
-            dataStructure.get(telematicsId).get(timestampAsDate)[hour] = new DrivenDistance(drivenDistance);
+            dataStructure.get(telematicsId).get(timestampAsCalendar)[hour] = new DrivenDistance(drivenDistance);
         }
         else{
             // same hour -> add new driven distance to hour
-            dataStructure.get(telematicsId).get(timestampAsDate)[hour].addDrivenDistance(drivenDistance);
+            dataStructure.get(telematicsId).get(timestampAsCalendar)[hour].addDrivenDistance(drivenDistance);
         }
 
     }
@@ -135,14 +136,11 @@ public class DataWarehouse implements MessageListener, Runnable{
     private double sumDrivenDistancesOfMessages(List<TelematicMessage> messages){
         double sum = 0;
         for(TelematicMessage message : messages){
-            sum += message.drivenDistanceMeters;
+            sum += message.getDrivenDistanceMeters();
         }
         return sum;
     }
 
-    public void printWarehouseData(){
-        printDataWareHouse();
-    }
 
     public void printDataWareHouse() {
         String toReturn;
@@ -156,8 +154,8 @@ public class DataWarehouse implements MessageListener, Runnable{
         Set<UUID> allIds = dataStructure.keySet();
         for(UUID id : allIds){
             System.out.println("Unit: " + id);
-            Set<Date> allDatesOfId = dataStructure.get(id).keySet();
-            for(Date date : allDatesOfId){
+            Set<Calendar> allDatesOfId = dataStructure.get(id).keySet();
+            for(Calendar date : allDatesOfId){
                 System.out.println("On date: " + date);
                 DrivenDistance[] distancesForDate = dataStructure.get(id).get(date);
                 for(int i = 1; i < 25; i++){

@@ -1,5 +1,9 @@
+package vv.fh.rosenheim.Subscriber;
+
 import com.google.gson.Gson;
 import com.sun.xml.internal.ws.encoding.soap.DeserializationException;
+import vv.fh.rosenheim.HelpingClasses.JMSManagement;
+import vv.fh.rosenheim.Telematics.Producer.Produces.TelematicMessage;
 
 import javax.jms.*;
 import java.io.*;
@@ -122,7 +126,7 @@ public class DriversLogbook implements MessageListener, Runnable{
         }
 
         // if there is no file create one
-        if(!checkFileExists(deserializedMessage.telematicsId)){
+        if(!checkFileExists(deserializedMessage.getTelematicsId())){
             // new file with json of a list containing the message will be written
             writeNewListToHardDisk(deserializedMessage);
         }
@@ -140,7 +144,7 @@ public class DriversLogbook implements MessageListener, Runnable{
         // iterate through list and compute whole driven distance
         long drivenDistanceInMeters = 0;
         for(int i = 0; i < messages.length; i++){
-            drivenDistanceInMeters += messages[i].drivenDistanceMeters;
+            drivenDistanceInMeters += messages[i].getDrivenDistanceMeters();
         }
 
         return drivenDistanceInMeters;
@@ -158,7 +162,7 @@ public class DriversLogbook implements MessageListener, Runnable{
 
         // save array to drive. Name of file is UUID of telematics, which produced this message.
         try {
-            PrintWriter out = new PrintWriter(listsDirectory + message.telematicsId + ".txt");
+            PrintWriter out = new PrintWriter(listsDirectory + message.getTelematicsId() + ".txt");
 
             // writes serialized json-list to file
             out.println(jsonArr);
@@ -177,7 +181,7 @@ public class DriversLogbook implements MessageListener, Runnable{
      */
     public static void addMessageToListOnHardDrive(TelematicMessage message) {
         try {
-            String pathToFile = new String(listsDirectory + message.telematicsId + ".txt");
+            String pathToFile = new String(listsDirectory + message.getTelematicsId() + ".txt");
             BufferedReader reader = new BufferedReader(new FileReader(pathToFile));
 
             // assumption whole list is written in first line of text file

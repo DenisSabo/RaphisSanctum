@@ -1,3 +1,5 @@
+package vv.fh.rosenheim.HelpingClasses;
+
 import java.io.PrintStream;
 
 import static java.lang.String.format;

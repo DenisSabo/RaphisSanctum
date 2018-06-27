@@ -1,3 +1,5 @@
+package vv.fh.rosenheim.HelpingClasses;
+
 import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;

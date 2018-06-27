@@ -1,4 +1,7 @@
+package vv.fh.rosenheim.Telematics.Producer.Produces;
+
 import com.google.gson.Gson;
+import vv.fh.rosenheim.Transport.Gps;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -92,5 +95,33 @@ public class TelematicMessage{
 
     public String getTimestamp() {
         return timestamp;
+    }
+
+    public UUID getTelematicsId() {
+        return telematicsId;
+    }
+
+    public void setTelematicsId(UUID telematicsId) {
+        this.telematicsId = telematicsId;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public Long getDrivenDistanceMeters() {
+        return drivenDistanceMeters;
+    }
+
+    public void setDrivenDistanceMeters(Long drivenDistanceMeters) {
+        this.drivenDistanceMeters = drivenDistanceMeters;
+    }
+
+    public Gps getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(Gps coordinates) {
+        this.coordinates = coordinates;
     }
 }

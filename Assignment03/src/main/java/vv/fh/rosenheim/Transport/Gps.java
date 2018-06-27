@@ -1,9 +1,11 @@
+package vv.fh.rosenheim.Transport;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-class Gps{
+public class Gps{
 
     double latitude, longitude;
 

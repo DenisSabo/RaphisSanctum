@@ -1,3 +1,9 @@
+package vv.fh.rosenheim;
+
+import vv.fh.rosenheim.HelpingClasses.JMSManagement;
+import vv.fh.rosenheim.Telematics.Producer.Produces.TelematicAlarm;
+import vv.fh.rosenheim.Telematics.Producer.Produces.TelematicMessage;
+
 import javax.jms.*;
 
 
@@ -61,7 +67,7 @@ public class Filter implements MessageListener{
         catch(JMSException ex){
             ex.printStackTrace();
         }
-        if(telAlarm.alarmReason == null){
+        if(telAlarm.getAlarmReason() == null){
             // message was actually a TelematicsMessage, because the reason is required
             telMessage = telAlarm;
             telAlarm = null;

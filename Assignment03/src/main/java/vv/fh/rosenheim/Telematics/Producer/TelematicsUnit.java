@@ -1,3 +1,10 @@
+package vv.fh.rosenheim.Telematics.Producer;
+
+import vv.fh.rosenheim.HelpingClasses.JMSManagement;
+import vv.fh.rosenheim.Telematics.Producer.Produces.TelematicAlarm;
+import vv.fh.rosenheim.Telematics.Producer.Produces.TelematicMessage;
+import vv.fh.rosenheim.Transport.Gps;
+
 import javax.jms.*;
 import javax.naming.NamingException;
 import java.io.IOException;
@@ -9,8 +16,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 
-// TODO alles nach todos absuchen
-// TODO improve JMS management
 public class TelematicsUnit implements Runnable{
 
     // JMS Constants

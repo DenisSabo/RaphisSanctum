@@ -1,4 +1,4 @@
-package Telematics;
+package vv.fh.rosenheim.Transport;
 
 public class DrivenDistance {
 
