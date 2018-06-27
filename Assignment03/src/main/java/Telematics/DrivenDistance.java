@@ -19,4 +19,15 @@ public class DrivenDistance {
     public double getDistanceInKilometers(){
            return (distanceInMeters/1000);
     }
+
+    public void addDrivenDistance(double drivenDistance){
+        this.distanceInMeters += drivenDistance;
+    }
+
+    @Override
+    public String toString() {
+        return "DrivenDistance{" +
+                "distanceInMeters=" + distanceInMeters +
+                '}';
+    }
 }

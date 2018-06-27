@@ -1,19 +1,40 @@
-import com.google.gson.Gson;
-
 import javax.jms.*;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 
-// TODO Use executor service
 // TODO alles nach todos absuchen
-// TODO Alarm-Zeugs einbauen
+// TODO improve JMS management
 public class TelematicsUnit implements Runnable{
+
+    // JMS Constants
+    private static final Session session = JMSManagement.getSession();
+    private static final Queue tripdata = JMSManagement.getQueueTripData();
+    private static MessageProducer producer;
+    // Other
+    private static final Random ran = new Random();
+    public static final char ENTER = '\n';
+    public static final int EOF = -1;
+
+    /**
+     * JMS:
+     * Call this method on an instance of this class, or else, no messages can be send
+     */
+    private static void initialize(){
+        try{
+            producer = session.createProducer(tripdata);
+            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+        } catch(JMSException ex){
+            ex.printStackTrace();
+        }
+
+    }
 
     /**
      * Uniquely identifiable number of telematics unit
@@ -36,6 +57,16 @@ public class TelematicsUnit implements Runnable{
     int waitingPeriodInSeconds;
 
     /**
+     * Random time after which an alarm message will be send
+     */
+    int sendAlarmInSeconds;
+
+    /**
+     * Flag which indicates if alarm should be send or not (From the task I conclude that only one alarm should be sent)
+     */
+    boolean alarmToBeSend = true;
+
+    /**
      * There should be a preferred direction, or else truck driver would drive in circles
      */
     Gps.Direction preferredDirection = Gps.Direction.randomDirection();;
@@ -45,55 +76,62 @@ public class TelematicsUnit implements Runnable{
     // Constructor
     public TelematicsUnit(Gps locationOfVehicle, int waitingPeriodInSeconds) {
         this.id = UUID.randomUUID(); // generates unique id
+        this.sendAlarmInSeconds = ran.nextInt(40) + 20; // possible outcome of 20-60
         this.locationOfVehicle = locationOfVehicle;
         this.waitingPeriodInSeconds = waitingPeriodInSeconds;
     }
 
 
-
+    /**
+     * Sends messages in a certain time interval. Besides that will send an alarm-message once.
+     */
     @Override
     public void run() {
+        System.out.println("Started monitoring vehicle: " + id);
+
         // get a random preferred direction, so it looks like driver has a destination
         preferredDirection = Gps.Direction.randomDirection();
-        System.out.println("Preferred direction: " + preferredDirection);
+        System.out.println("Preferred direction of monitored vehicle: " + preferredDirection);
 
-        System.out.println("Started monitoring vehicle: " + id);
+        // Starting location of vehicle
         System.out.println("Location: " + locationOfVehicle.toString());
 
-        while(true){
+        // Will send messages in a settable period of time and will send an alarm in a random period of time (only once)
+        while(true) {
             try {
-                // Thread.sleep() expects milliseconds
-                int waitingPeriodInMilliseconds = waitingPeriodInSeconds * 1000;
-                Thread.sleep(waitingPeriodInMilliseconds);
+                // alarm was not yet send
+                if(alarmToBeSend){
+                    if (waitingPeriodInSeconds > sendAlarmInSeconds) {
+                        // alarm message has to be send before normal message
+                        Thread.sleep(sendAlarmInSeconds * 1000);
+                        generateAndSendAlarm(sendAlarmInSeconds, "Accelerated too quickly");
+
+                        // now wait rest of time period for normal messages
+                        int timeToWait = waitingPeriodInSeconds - sendAlarmInSeconds;
+                        Thread.sleep(timeToWait * 1000);
+                        generateAndSendMessage(timeToWait);
+                    }
+                    else if(sendAlarmInSeconds > waitingPeriodInSeconds){
+                        // normal message has to be send before the alarm
+                        Thread.sleep(waitingPeriodInSeconds * 1000);
+                        generateAndSendMessage(waitingPeriodInSeconds);
+                        sendAlarmInSeconds -= waitingPeriodInSeconds;
+                    }
+                    else { // if(waitingPeriodInSeconds == sendAlarmInSeconds)
+                        Thread.sleep(waitingPeriodInSeconds * 1000);
+                        generateAndSendMessage(waitingPeriodInSeconds);
+                        // Since new driving data was generated already, the passed 0 will assure
+                        // that all values stay the same, but still an alarm-message can be send
+                        generateAndSendAlarm(0, "Accelerated too quickly");
+                    }
+                }
+                else{ // if there is no alarm to be send -> Just send message
+                    Thread.sleep(waitingPeriodInSeconds * 1000);
+                    generateAndSendMessage(waitingPeriodInSeconds);
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println("Woke up");
-            // get random number for driven distance
-            System.out.println("Checking drivenDistance value: " + drivenDistanceMeters);
-
-            drivenDistanceMeters += getRandomDrivenDistance(waitingPeriodInSeconds);
-            System.out.println("Driven distance: " + drivenDistanceMeters);
-
-            // simulate some driving and save the location
-            Gps newLocationOfVehicle = drive(locationOfVehicle);
-            locationOfVehicle = newLocationOfVehicle;
-
-            System.out.println("New location: " + newLocationOfVehicle);
-
-            // generate message
-            TelematicMessage message = new TelematicMessage(id, drivenDistanceMeters, locationOfVehicle);
-
-            // send message
-            try {
-                sendMessage(message);
-            } catch (JMSException e) {
-                e.printStackTrace();
-            } catch (NamingException e) {
-                e.printStackTrace();
-            }
-
-            this.locationOfVehicle = newLocationOfVehicle;
         }
     }
 
@@ -151,23 +189,60 @@ public class TelematicsUnit implements Runnable{
         return ThreadLocalRandom.current().nextLong(0, 33) * waitingPeriodInSeconds;
     }
 
+    /**
+     * Generates some driving data, and initialize instance of this class with it. Then send message
+     * @param waitedPeriodOfTimeSeconds is needed, or else no realistic driving data can be generated
+     */
+    private void generateAndSendMessage(Integer waitedPeriodOfTimeSeconds){
+        System.out.println("Sending message");
+        // Generate and save driving data
+        drivenDistanceMeters += getRandomDrivenDistance(waitedPeriodOfTimeSeconds);
+        Gps newLocationOfVehicle = drive(locationOfVehicle);
+        locationOfVehicle = newLocationOfVehicle;
+        // Create message
+        TelematicMessage message = new TelematicMessage(id, drivenDistanceMeters, locationOfVehicle);
+        try{
+            sendMessage(message);
+        } catch(JMSException ex){
+            ex.printStackTrace();
+        }
+    }
 
-    private static final Session session = JMSManagement.getSession();
-    private static final Queue tripdata = JMSManagement.getQueueTripData();
-    private static MessageProducer producer;
 
     /**
-     * Sends message to ActiveMQ-server. (http://localhost:8161/admin/index.jsp)
-     * @param telMessage containing the id of telematics, the driven distance, location and a timestamp
+     * Generate and save driving data. Send alarm with this data.
      */
-    private void sendMessage(TelematicMessage telMessage) throws JMSException, NamingException {
+    private void generateAndSendAlarm(Integer waitedPeriodOfTimeSeconds, String alarmReason){
 
-        // producer handles sending of messages
-        producer = session.createProducer(tripdata);
-        producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+        System.out.println("Sending alarm");
 
-        // send json as text
+        // Alarm will be send only one time
+        alarmToBeSend = false;
+
+        // Generate data
+        drivenDistanceMeters += getRandomDrivenDistance(waitedPeriodOfTimeSeconds);
+        Gps newLocationOfVehicle = drive(locationOfVehicle);
+        locationOfVehicle = newLocationOfVehicle;
+
+        // Create alarm-message by means of generated data
+        TelematicAlarm alarm = new TelematicAlarm(id, drivenDistanceMeters, locationOfVehicle, alarmReason);
+        try{
+            sendAlarm(alarm);
+        } catch(JMSException ex){
+            ex.printStackTrace();
+        }
+    }
+
+    private void sendMessage(TelematicMessage telMessage) throws JMSException{
+
         String json = TelematicMessage.serialize(telMessage);
+        TextMessage message = session.createTextMessage(json);
+        producer.send(message);
+    }
+
+
+    private void sendAlarm(TelematicAlarm alarm) throws JMSException{
+        String json = TelematicAlarm.serialize(alarm);
         TextMessage message = session.createTextMessage(json);
         producer.send(message);
     }
@@ -176,27 +251,51 @@ public class TelematicsUnit implements Runnable{
 
 
     public static void main(String[] args) throws NamingException, JMSException, IOException {
-        System.out.println("How many Telematics you want to start? Type in a number: ");
-        String input = listenToUserInput();
+        // Initializes this class as producer, or else no messages can be send
+        initialize();
 
-        Integer unitsToStart = Integer.parseInt(input);
+        // User input that will be collected
+        Integer unitsToStart = 0, waitingTimePeriod = 0;
+        try{
+            unitsToStart = askUserAndExpectInt("How many Telematics you want to start? Type in a number: ");
+        } catch(IllegalArgumentException ex){
+            // re-run main, so user can adjust input
+            main(args);
+        }
 
-        /**
-        ExecutorService executorService =
-                new ThreadPoolExecutor(unitsToStart, 20, 999999999999999999L, TimeUnit.MILLISECONDS,
-                        new LinkedBlockingQueue<Runnable>());
+        try{
+            waitingTimePeriod = askUserAndExpectInt("After how many seconds do you want the units to send a message?");
+        } catch(IllegalArgumentException ex){
+            // re-run main, so user can adjust input
+            main(args);
+        }
 
-        List<Callable<TelematicsUnit>> unitsToBeStarted = new ArrayList<>();
-         */
+        ExecutorService executor = Executors.newFixedThreadPool(unitsToStart);
 
-        // Run message producer in own thread
-        Thread thread = new Thread(new TelematicsUnit(new Gps(47.8674365, 12.10730650000005), 5));
-        thread.start();
+        // Start as many telematics units, as wished by user
+        while(unitsToStart > 0){
+            executor.submit(new TelematicsUnit(new Gps(47.8674365, 12.10730650000005), waitingTimePeriod));
+            unitsToStart--;
+        }
     }
 
-    // TODO
-    public static final char ENTER = '\n';
-    public static final int EOF = -1;
+    public static Integer askUserAndExpectInt(String messageForUser) throws IllegalArgumentException{
+        // Expected input from user
+        Integer expected = 0;
+        // Message for user
+        System.out.println(messageForUser);
+        // get user input
+        String input = listenToUserInput();
+        try{
+            expected = Integer.parseInt(input);
+        } catch (Exception ex){
+            System.err.println("Please type in a number");
+            throw new IllegalArgumentException("Integer was expected");
+        }
+        return expected;
+    }
+
+
 
     public static String listenToUserInput(){
         StringBuffer buffer = new StringBuffer();

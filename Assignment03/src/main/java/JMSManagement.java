@@ -18,6 +18,18 @@ public class JMSManagement {
             e.printStackTrace();
         }
     }
+    /**
+     * Queue for alarms
+     */
+    static private Queue alarms;
+
+    static {
+        try {
+            alarms = getSession().createQueue("alarms");
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Topic distributor
@@ -36,7 +48,7 @@ public class JMSManagement {
     }
 
     public static Session getSession(){
-        // JMS + ActiveMQ initialisierung
+        // JMS + ActiveMQ initialization
         Properties props = new Properties();
         props.setProperty(Context.INITIAL_CONTEXT_FACTORY,
                 "org.apache.activemq.jndi.ActiveMQInitialContextFactory");
@@ -99,5 +111,9 @@ public class JMSManagement {
 
     public static Topic getTopicDistributor(){
         return distributor;
+    }
+
+    public static Queue getQueueAlarms(){
+        return alarms;
     }
 }
