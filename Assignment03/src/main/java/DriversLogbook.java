@@ -1,10 +1,11 @@
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 import com.sun.xml.internal.ws.encoding.soap.DeserializationException;
 
 import javax.jms.*;
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 public class DriversLogbook implements MessageListener, Runnable{
     // Directory to which the listOfMessagesForTelematicsUnit.txt files will be saved
