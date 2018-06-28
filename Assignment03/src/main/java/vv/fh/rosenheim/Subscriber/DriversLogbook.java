@@ -10,6 +10,8 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DriversLogbook implements MessageListener, Runnable{
     // Directory to which the listOfMessagesForTelematicsUnit.txt files will be saved
@@ -52,8 +54,9 @@ public class DriversLogbook implements MessageListener, Runnable{
         DriversLogbook logbook = new DriversLogbook();
         logbook.initialize();
 
-        Thread printDistances = new Thread(logbook);
-        printDistances.start();
+        // own thread will print complete driven distances of telematics units
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(logbook);
     }
 
     @Override

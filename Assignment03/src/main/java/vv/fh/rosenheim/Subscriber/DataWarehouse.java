@@ -8,6 +8,8 @@ import com.sun.xml.internal.ws.encoding.soap.DeserializationException;
 
 import javax.jms.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DataWarehouse implements MessageListener, Runnable{
 
@@ -62,8 +64,8 @@ public class DataWarehouse implements MessageListener, Runnable{
         warehouse.initialize(); // JMS
 
         // plus thread which will print data in warehouse
-        Thread printingThread = new Thread(warehouse);
-        printingThread.run();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(warehouse);
     }
 
 
