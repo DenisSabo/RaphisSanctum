@@ -1,14 +1,15 @@
 #IDEA IDE
 .idea/
 
+#Gradle
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+
+#Other generated things
+out/
+
 #TODO
 Assignment02/gradle/
 Assignment02/lib/
-
-#Gradle-Stuff in Assignment03-dir
-Assignment03/.gradle/
-Assignment03/gradlew
-Assignment03/gradlew.bat
-
-#IntelliJ-Stuff in Assignment03-dir
-.idea/
