@@ -9,17 +9,18 @@ communication between JMS-Clients.
 2. Try to get the code running in your IDE 
     - Create new **Gradle**-Application
     - Copy **dependencies** from the **build.gradle** file
-    - Copy files from **src**\main\java\vv\fh\rosenheim into your **new created project**
+    - Copy source files from **src**\main\java\vv\fh\rosenheim into your **new created project**
 
 ### Run Code parts in your IDE
 
 1. Start **Telematics Unit's** main first.
     - Here you will be asked how many units you want to start. Type in any number BUT some information will be printed to console -> For clearity reasons do not start to much units
-    - Now you will be asked for a time interval at which messages will be sended frequently
+    - Now you will be asked for a time interval at which messages will be sended regularly. Type in '5' for instance and each unit will send a message of current status each 5 seconds
         - Smaller time interval -> More messages
     - Now messages will be created and send to your Apache ActiveMQ-Server 
         - **http://localhost:8161/admin/index.jsp** -> Manage Queues/Topics, Producers/Consumers
         - Messages will be send into queue "trip data"
+    - Besides that each unit sends one **alarm**-message after a random time (Between 20 and 60 seconds after start)
 
 2. Next thing to start is the **filter**'s main
     - This class will consume messages from queue "trip data"
@@ -33,8 +34,9 @@ communication between JMS-Clients.
     - **DataWarehouse** -> does not store the messages, but instead stores the distance travelled by each unit at each hour at each date
     - As the logbook, it prints the collected information in regular intervals
 
-4. Some information to how the message is handled here
+4. Some information about message-serialization
     - The class TelematicsMessage contains all data needed for the other classes, which consume this messages
+        - Telematics ID which created this message, location, driven distance since last message and timestamp of time when message was created
     - An instance of this message is created and filled properly by the telematics units
     - Then it will be converted to JSON and send as text message to Queues/Topic ...
 
