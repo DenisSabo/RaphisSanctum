@@ -73,6 +73,11 @@ public class DriversLogbook implements MessageListener, Runnable{
         }
     }
 
+    /**
+     * Gains all necessary information from lists on hard drive and calculates
+     * the driven distances of the telematic units.
+     * Results will be printed to console.
+     */
     private void printDrivenDistances(){
         // get all files
         File folder = new File(listsDirectory);
