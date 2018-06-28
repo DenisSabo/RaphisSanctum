@@ -34,7 +34,8 @@ communication between JMS-Clients.
     - It prints the complete covered distance of each unit in regular intervals by iterating through the lists and summing up the distances
     - **DataWarehouse** -> does not store the messages, but instead stores the distances travelled by each unit for each hour a day
         - Example: Unit "1234" on 28.06.2018 
-                        |Hour of Day     | 1 | 2 | 3 | 4 | 5 | 6 | 7    | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 
+                        |   Hour of Day  | 1 | 2 | 3 | 4 | 5 | 6 | 7    | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 |
+                        |----------------|---|---|---|---|---|---|------|---|---|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|                     
                         |Covered Distance| 0 | 0 | 0 | 0 | 0 |250|50.000|...|   |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |
     - As the logbook, it prints the collected information in regular intervals
 
