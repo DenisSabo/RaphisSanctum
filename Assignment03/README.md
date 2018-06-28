@@ -42,9 +42,10 @@ communication between JMS-Clients.
 
 
 4. Some information about message-serialization
-    - The class TelematicsMessage contains all data needed for the other classes, which consume this messages
+    - The class TelematicMessage contains all data needed for the other classes, which consume this messages
         - Telematics ID which created this message, location, driven distance since last message and timestamp of time when message was created
-    - An instance of this message is created and filled properly by the telematics units
+    - Instances of TelematicsMessage are created and filled properly by the telematics units
     - Then it will be converted to JSON and send as text message to Queues/Topic ...
+    - Consumers only have to deserialzie JSON to TelematicMessage
 
 
