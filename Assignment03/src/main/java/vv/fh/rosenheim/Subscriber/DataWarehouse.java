@@ -144,30 +144,45 @@ public class DataWarehouse implements MessageListener, Runnable{
     }
 
 
+    /**
+     * Obtains data about each units driven distances at a all dates for which data exists, and prints
+     * the driven distances of each hour in a pretty table
+     */
     public void printDataWareHouse() {
-        String toReturn;
+
+        // Table containing the information about driven distances per hour that can be printed by PrettyPrinter
         String[][] prettyDistancesPerHourTable = new String[2][25];
+
+        // First column contains "titles" of table
         prettyDistancesPerHourTable[0][0] = "Hour of Day";
         prettyDistancesPerHourTable[1][0] = "Driven distance";
+
+        // Initialize first row with the 24 hours of the day
         for(int i = 1; i < 25; i++){
             prettyDistancesPerHourTable[0][i] = Integer.toString(i);
         }
 
         Set<UUID> allIds = dataStructure.keySet();
+        // Iterate through all ids
         for(UUID id : allIds){
             System.out.println("Unit: " + id);
+
             Set<Calendar> allDatesOfId = dataStructure.get(id).keySet();
+            //Iterate through all dates of currently iterated ID
             for(Calendar date : allDatesOfId){
                 System.out.println("On date: " + date.getTime());
+                // Get table with distances for current unit and current date
                 DrivenDistance[] distancesForDate = dataStructure.get(id).get(date);
                 for(int i = 1; i < 25; i++){
-                    if(distancesForDate[i - 1] == null){
+                    if(distancesForDate[i - 1] == null){ // If no entry for hour exists -> Placeholder
                         prettyDistancesPerHourTable[1][i] = "-";
                     }
                     else{
+                        // Get value and put it into table that will be printed
                         prettyDistancesPerHourTable[1][i] =  Double.toString(distancesForDate[i - 1].getDistanceInMeters());
                     }
                 }
+                // pretty print
                 final PrettyPrinter printer = new PrettyPrinter(System.out);
                 printer.print(prettyDistancesPerHourTable);
 
