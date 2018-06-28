@@ -29,9 +29,13 @@ communication between JMS-Clients.
 
 3. Now you can start the **Driver's logbook** or the **DataWarehouse's** main
     - Both classes are (durable) subscribers to the topic "distributor" 
-    - **Driver's logbook** -> Saves messages as list to each unit on the hard drive (C://telematicsLists/)
-    - It prints the complete covered distance of each unit in regular intervals
-    - **DataWarehouse** -> does not store the messages, but instead stores the distance travelled by each unit at each hour at each date
+    - **Driver's logbook** -> Saves messages as list for each telematics unit. Will be saved on the hard drive  (C://telematicsLists/)
+        - Example. Only one unit creating messages -> One file in C://telematisLists/<TelematicsID>.txt
+    - It prints the complete covered distance of each unit in regular intervals by iterating through the lists and summing up the distances
+    - **DataWarehouse** -> does not store the messages, but instead stores the distances travelled by each unit for each hour a day
+        - Example: Unit "1234" on 28.06.2018 
+                        |Hour of Day     | 1 | 2 | 3 | 4 | 5 | 6 | 7    | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 
+                        |Covered Distance| 0 | 0 | 0 | 0 | 0 |250|50.000|...|   |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |
     - As the logbook, it prints the collected information in regular intervals
 
 4. Some information about message-serialization
