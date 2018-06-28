@@ -48,4 +48,14 @@ communication between JMS-Clients.
     - Then it will be converted to JSON and send as text message to Queues/Topic ...
     - Consumers only have to deserialzie JSON to TelematicMessage
 
+### Output screenshots
+![Telematic Units will print if a message or alarm got send to ActiveMQ's trip-data queue](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/Assignment02/doc/UnitsPrint.JPG)
+
+![Filter will print if message was found and written to topic distributor or alarm was found and written into alarm queue](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/Assignment02/doc/FilterPrint.JPG)
+
+![Drivers Logbook will print the complete driven distances of the telematic units](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/Assignment02/doc/LogbookPrint.JPG)
+
+![Data Warehouse will print the contained data-structure in the warehouse](https://inf-git.fh-rosenheim.de/vv-ss18/SabolotniDennis/blob/dev/Assignment02/doc/WarehousePrint.JPG)
+
+
 
