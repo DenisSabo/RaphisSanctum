@@ -183,10 +183,9 @@ public class TelematicsUnit implements Runnable{
 
 
     /**
-     * @param waitingPeriod influences the returned driven distance, so is more realistic
      * @returns a theoretically possible value for a driven distance
      */
-    private Long getRandomDrivenDistance(int waitingPeriod){
+    private Long getRandomDrivenDistance(){
         // driven distance will get a random, but realistic value:
         // Assumption: max distance an truck can drive in one second is 33 meters per second (with 120 km per hour)
         // Example: time period for message = 300s (5 minutes) -> 5 minutes with 120 km/h ->
@@ -201,7 +200,7 @@ public class TelematicsUnit implements Runnable{
     private void generateAndSendMessage(Integer waitedPeriodOfTimeSeconds){
         System.out.println("Sending message");
         // Generate and save driving data
-        drivenDistanceMeters += getRandomDrivenDistance(waitedPeriodOfTimeSeconds);
+        drivenDistanceMeters += getRandomDrivenDistance();
         Gps newLocationOfVehicle = drive(locationOfVehicle);
         locationOfVehicle = newLocationOfVehicle;
         // Create message
@@ -225,7 +224,7 @@ public class TelematicsUnit implements Runnable{
         alarmToBeSend = false;
 
         // Generate data
-        drivenDistanceMeters += getRandomDrivenDistance(waitedPeriodOfTimeSeconds);
+        drivenDistanceMeters += getRandomDrivenDistance();
         Gps newLocationOfVehicle = drive(locationOfVehicle);
         locationOfVehicle = newLocationOfVehicle;
 
